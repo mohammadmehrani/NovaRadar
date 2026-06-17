@@ -1,0 +1,20 @@
+R_DEF: Internal format may change without notice
+local
+mipmap novaradar
+string alive
+string app_name
+string copy_all
+string copy_top_10
+string dead
+string eta
+string no_results
+string nova_group
+string quick_scan_tcp
+string radar
+string ready_scan
+string results
+string scanned
+string scanning_subnet
+string start_scan
+string stop_scan
+style Theme.NovaRadar

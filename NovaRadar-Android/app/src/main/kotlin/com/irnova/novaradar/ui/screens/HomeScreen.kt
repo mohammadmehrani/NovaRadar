@@ -31,6 +31,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -43,10 +46,21 @@ import com.irnova.novaradar.R
 import com.irnova.novaradar.data.model.ScanResult
 import com.irnova.novaradar.data.model.ScanStats
 import com.irnova.novaradar.ui.components.RadarAnimation
+import androidx.compose.ui.tooling.preview.Preview
 import com.irnova.novaradar.ui.theme.*
 import com.irnova.novaradar.ui.viewmodel.HomeViewModel
 import java.io.File
 
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    NovaRadarTheme {
+        // We might need a mock ViewModel here or just a dummy UI
+        Box(modifier = Modifier.fillMaxSize())
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val stats by viewModel.stats.collectAsState()
@@ -65,7 +79,13 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 containerColor = Color.Transparent,
                 contentColor = if(isDark) NovaPrimary else LightPrimary,
                 divider = {},
-                indicator = { TabRowDefaults.SecondaryIndicator(Modifier.tabIndicatorOffset(it[selectedTab]), color = if(isDark) NovaPrimary else LightPrimary, height = 3.dp) },
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                        color = if(isDark) NovaPrimary else LightPrimary,
+                        height = 3.dp
+                    )
+                },
                 modifier = Modifier.padding(horizontal = 24.dp).height(48.dp)
             ) {
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
@@ -126,9 +146,13 @@ fun HeaderSection(brush: Brush, context: Context) {
         modifier = Modifier.fillMaxWidth().padding(top = 28.dp, start = 24.dp, end = 24.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.size(48.dp).background(brush, RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-            Text("N", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Black)
-        }
+        Image(
+            painter = painterResource(id = R.mipmap.novaradar),
+            contentDescription = null,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(stringResource(R.string.app_name).uppercase(), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Black)

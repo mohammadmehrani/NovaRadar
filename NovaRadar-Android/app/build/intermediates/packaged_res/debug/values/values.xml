@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alive">Alive</string>
+    <string name="app_name">NovaRadar</string>
+    <string name="copy_all">Copy All</string>
+    <string name="copy_top_10">Copy Top 10</string>
+    <string name="dead">Dead</string>
+    <string name="eta">ETA</string>
+    <string name="no_results">No results yet. Start scanning!</string>
+    <string name="nova_group">IRNova Group</string>
+    <string name="quick_scan_tcp">Quick Scan (TCP)</string>
+    <string name="radar">Radar</string>
+    <string name="ready_scan">Ready to Scan</string>
+    <string name="results">Results</string>
+    <string name="scanned">Scanned</string>
+    <string name="scanning_subnet">Scanning Subnet</string>
+    <string name="start_scan">Start Scan</string>
+    <string name="stop_scan">Stop Scan</string>
+    <style name="Theme.NovaRadar" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>

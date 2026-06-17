@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.irnova.novaradar.app-merged_res-52:/mipmap-mdpi_novaradar.png.flat",
+        "source": "com.irnova.novaradar.app-main-54:/mipmap-mdpi/novaradar.png"
+    },
+    {
+        "merged": "com.irnova.novaradar.app-merged_res-52:/mipmap-xxhdpi_novaradar.png.flat",
+        "source": "com.irnova.novaradar.app-main-54:/mipmap-xxhdpi/novaradar.png"
+    },
+    {
+        "merged": "com.irnova.novaradar.app-merged_res-52:/mipmap-hdpi_novaradar.png.flat",
+        "source": "com.irnova.novaradar.app-main-54:/mipmap-hdpi/novaradar.png"
+    },
+    {
+        "merged": "com.irnova.novaradar.app-merged_res-52:/mipmap-xxxhdpi_novaradar.png.flat",
+        "source": "com.irnova.novaradar.app-main-54:/mipmap-xxxhdpi/novaradar.png"
+    },
+    {
+        "merged": "com.irnova.novaradar.app-merged_res-52:/mipmap-xhdpi_novaradar.png.flat",
+        "source": "com.irnova.novaradar.app-main-54:/mipmap-xhdpi/novaradar.png"
+    }
+]

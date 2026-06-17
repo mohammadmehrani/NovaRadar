@@ -15,8 +15,7 @@ class HomeViewModel @Inject constructor(
     private val repository: ScannerRepository
 ) : ViewModel() {
 
-    private val _stats = MutableStateFlow(ScanStats())
-    val stats = _stats.asStateFlow()
+    val stats = repository.scanStats
 
     private val _results = MutableStateFlow<List<ScanResult>>(emptyList())
     val results = _results.asStateFlow()
@@ -25,24 +24,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.scanResults.collect { result ->
                 _results.update { (it + result).sortedBy { r -> r.latencyMs } }
-                _stats.update { it.copy(
-                    aliveCount = it.aliveCount + 1,
-                    totalScanned = it.totalScanned + 1,
-                    currentIP = result.ip
-                ) }
             }
         }
     }
 
     fun startScan() {
         _results.value = emptyList()
-        _stats.update { ScanStats(scanning = true) }
-        repository.startScan("1.1.1", 443) // رنج پیش‌فرض برای تست
+        repository.startScan()
     }
 
     fun stopScan() {
         repository.stopScan()
-        _stats.update { it.copy(scanning = false) }
     }
 
     fun getResultsForCopy(top10Only: Boolean): String {
