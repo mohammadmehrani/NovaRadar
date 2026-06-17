@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="BackgroundAgentGlobalSettings">
+    <option name="selectedModelId" value="auto" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6c6a5410-7582-4439-a489-8e28c055dae6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/NovaRadar-Android/app/src/main/kotlin/com/irnova/novaradar/Constants.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NovaRadar-Android/app/src/main/kotlin/com/irnova/novaradar/ui/screens/HomeScreen.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/NovaRadar-Android/app/src/main/kotlin/com/irnova/novaradar/ui/theme/Type.kt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/IODECK/Documents/GitHub/NovaRadar" value="3FAIN57CKAZtX4sJnQAGnkWHO7i" />
+      <entry key="_D:/DEV/Android Projects/NovaRadar-Android-Fixed" value="3EoeD0m9nA1JZZk3SgDfz6PYKY3" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="25" />
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view />
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mohammadmehrani&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/mohammadmehrani/NovaRadar.git&quot;,
+    &quot;accountId&quot;: &quot;de5b91a1-8b03-47b3-b829-f3798f6e969d&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;16204ac0&quot;,
+  &quot;associatedIndex&quot;: 5,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3EoeD0m9nA1JZZk3SgDfz6PYKY3" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+      </template>
+    </option>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "android-v2-3-release",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/IODECK/Documents/GitHub/NovaRadar",
+    "settings.editor.selected.configurable": "templates.modelproviders.configurable",
+    "show.migrate.to.gradle.popup": "false"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6c6a5410-7582-4439-a489-8e28c055dae6" name="Changes" comment="" />
+      <created>1780849226295</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1780849226295</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Final adjustments: removed Farsi, updated name to Nova Radar, adjusted icon and theme settings">
+      <option name="closed" value="true" />
+      <created>1781525548649</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1781525548649</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Final adjustments: removed Farsi, updated name to Nova Radar, adjusted icon and theme settings">
+      <option name="closed" value="true" />
+      <created>1781525644586</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1781525644586</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Final adjustments: removed Farsi, updated name to Nova Radar, adjusted icon and theme settings">
+      <option name="closed" value="true" />
+      <created>1781536883383</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1781536883385</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
+    <servers />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.dart" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Final adjustments: removed Farsi, updated name to Nova Radar, adjusted icon and theme settings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Final adjustments: removed Farsi, updated name to Nova Radar, adjusted icon and theme settings" />
+  </component>
+</project>
