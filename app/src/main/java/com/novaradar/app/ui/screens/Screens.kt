@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -194,13 +195,16 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
     }
 
     val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val cfg = LocalConfiguration.current
+    val isCompact = cfg.screenHeightDp < 650 || cfg.screenWidthDp < 380
+    val radarSize = if (isCompact) 180.dp else 240.dp
 
     LocalizedLayout(lang) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .padding(top = 96.dp, bottom = 100.dp), // elegant spacing cleared for glassy top header
+                .padding(top = if (isCompact) 12.dp else 96.dp, bottom = if (isCompact) 12.dp else 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -334,8 +338,6 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 // Rotating Cyber Radar Shape
-                                val availableHeight = 800.dp // dummy for reference
-                                val radarSize = 240.dp
                                 Box(
                                     modifier = Modifier
                                         .size(radarSize)
@@ -354,6 +356,46 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                                         .testTag("radar_canvas_container"),
                                     contentAlignment = Alignment.Center
                                 ) {
+                                    // Scan control overlay on compact screens
+                                    if (isCompact) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .padding(bottom = 8.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .background(
+                                                    if (isScanning) Color(0xFFBE123C).copy(alpha = 0.9f)
+                                                    else Color(0xFFB00020).copy(alpha = 0.9f)
+                                                )
+                                                .clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null
+                                                ) {
+                                                    if (isScanning) viewModel.stopScan() else viewModel.startScan()
+                                                }
+                                                .testTag("scan_trigger_button")
+                                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                                    contentDescription = "Scan",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = if (isScanning) Localization.get("stop_scan", lang) else Localization.get("start_scan", lang),
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White
+                                                )
+                                            }
+                                        }
+                                    }
                                     Canvas(modifier = Modifier.fillMaxSize()) {
                                         val radius = size.minDimension / 2f
                                         val center = Offset(size.width / 2f, size.height / 2f)
@@ -733,41 +775,43 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                                     }
                                 }
 
-                                // Big Start/Stop Engine Button with glowing Cyber Crimson Red gradient
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp)
-                                        .clip(RoundedCornerShape(26.dp))
-                                        .background(
-                                            if (isScanning) {
-                                                Brush.linearGradient(listOf(Color(0xFFF43F5E), Color(0xFFBE123C))) // Gorgeous glowing Coral/Rosy Crimson
-                                            } else {
-                                                Brush.linearGradient(listOf(Color(0xFFFF2E63), Color(0xFFB00020))) // Electric Crimson Red
-                                            }
-                                        )
-                                        .clickable { if (isScanning) viewModel.stopScan() else viewModel.startScan() }
-                                        .testTag("scan_trigger_button"),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically
+                                if (!isCompact) {
+                                    // Big Start/Stop Engine Button (standalone on spacious screens)
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                            .clip(RoundedCornerShape(26.dp))
+                                            .background(
+                                                if (isScanning) {
+                                                    Brush.linearGradient(listOf(Color(0xFFF43F5E), Color(0xFFBE123C)))
+                                                } else {
+                                                    Brush.linearGradient(listOf(Color(0xFFFF2E63), Color(0xFFB00020)))
+                                                }
+                                            )
+                                            .clickable { if (isScanning) viewModel.stopScan() else viewModel.startScan() }
+                                            .testTag("scan_trigger_button"),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector = if (isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                            contentDescription = "Scan Icon",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = if (isScanning) Localization.get("stop_scan", lang) else Localization.get("start_scan", lang),
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = Color.White
-                                        )
+                                        Row(
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                                contentDescription = "Scan Icon",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = if (isScanning) Localization.get("stop_scan", lang) else Localization.get("start_scan", lang),
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color.White
+                                            )
+                                        }
                                     }
                                 }
                             }
