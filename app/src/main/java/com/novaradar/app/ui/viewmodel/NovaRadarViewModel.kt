@@ -29,12 +29,20 @@ import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.security.cert.X509Certificate
-import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import kotlin.random.Random
+
+private val trustAllSSLContext by lazy {
+    val trustAll = arrayOf<TrustManager>(object : X509TrustManager {
+        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    })
+    SSLContext.getInstance("TLS").apply { init(null, trustAll, null) }
+}
 
 enum class AppTheme {
     PRISM_DARK,
@@ -382,7 +390,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
                 val deferreds = chunk.map { (ip, port, sourceId) ->
                     async {
                         _currentScanningSubnet.value = "$ip:$port"
-                        val success = testSocketConnection(ip, port, 1500)
+                        val success = testSocketConnection(ip, port, 2000)
                         if (success > 0) Triple(ip, port, sourceId) else null
                     }
                 }
@@ -407,6 +415,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
             // Matches Go core: 3 attempts per candidate, pass if >= 2 succeed
             val deepConcurrency = 50
             val verifiedTempList = mutableListOf<AliveIp>()
+            var totalDeadAttempts = 0
 
             val candidateChunks = candidates.chunked(deepConcurrency)
             for (chunk in candidateChunks) {
@@ -419,13 +428,18 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
 
                         var successCount = 0
                         var bestLatency = Long.MAX_VALUE
+                        var failedAttempts = 0
 
                         // 3 attempts (matching Go deepTest)
                         for (attempt in 1..3) {
-                            val latency = deepTestConnect(ip, port)
-                            if (latency > 0) {
+                            val startTime = System.currentTimeMillis()
+                            val ok = deepTestConnect(ip, port)
+                            val latency = System.currentTimeMillis() - startTime
+                            if (ok) {
                                 successCount++
                                 if (latency < bestLatency) bestLatency = latency
+                            } else {
+                                failedAttempts++
                             }
                         }
 
@@ -434,25 +448,31 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
                             AliveIp(ip = ip, port = port, ping = bestLatency)
                         } else {
                             null
-                        }
+                        } to failedAttempts
                     }
                 }
 
-                val results = deferreds.awaitAll().filterNotNull()
-                results.forEach { aliveIp ->
-                    addToLogs("✔ VERIFIED: ${aliveIp.ip}:${aliveIp.port} - ${aliveIp.ping}ms")
-                    repository.insertHistory(
-                        ScanHistory(ip = aliveIp.ip, port = aliveIp.port, ping = aliveIp.ping, novaId = aliveIp.novaId)
-                    )
+                val chunkResults = deferreds.awaitAll()
+                chunkResults.forEach { result ->
+                    if (result != null) {
+                        val (aliveIp, failed) = result
+                        totalDeadAttempts += failed
+                        if (aliveIp != null) {
+                            addToLogs("✔ VERIFIED: ${aliveIp.ip}:${aliveIp.port} - ${aliveIp.ping}ms")
+                            repository.insertHistory(
+                                ScanHistory(ip = aliveIp.ip, port = aliveIp.port, ping = aliveIp.ping, novaId = aliveIp.novaId)
+                            )
+                            verifiedTempList.add(aliveIp)
+                        }
+                    }
                 }
-                verifiedTempList.addAll(results)
             }
 
             withContext(Dispatchers.Main) {
                 val sorted = verifiedTempList.sortedBy { it.ping }
                 sorted.forEach { updateAliveList(it, false) }
                 _aliveCount.value = sorted.size
-                _deadCount.value = candidates.size - sorted.size
+                _deadCount.value = totalDeadAttempts
             }
 
             finishScan(_aliveCount.value, _deadCount.value)
@@ -512,37 +532,27 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun deepTestConnect(ip: String, port: Int): Long {
+    private fun deepTestConnect(ip: String, port: Int): Boolean {
         val timeout = 3000
-        val startTime = System.currentTimeMillis()
         return try {
+            val socket = Socket()
+            socket.connect(InetSocketAddress(ip, port), timeout)
+            socket.soTimeout = timeout
             if (port in tlsPorts) {
-                val trustAll = arrayOf<TrustManager>(object : X509TrustManager {
-                    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-                })
-                val sslContext = SSLContext.getInstance("TLS")
-                sslContext.init(null, trustAll, null)
-                val sslSocket = sslContext.socketFactory.createSocket() as SSLSocket
-                sslSocket.connect(InetSocketAddress(ip, port), timeout)
+                val sslSocket = trustAllSSLContext.socketFactory
+                    .createSocket(socket, vlessSNI, port, true) as SSLSocket
                 sslSocket.soTimeout = timeout
-                val params = sslSocket.sslParameters
-                params.serverNames = listOf(SNIHostName(vlessSNI))
-                sslSocket.sslParameters = params
                 sslSocket.startHandshake()
                 sslSocket.close()
+                // sslSocket.close() already closed socket (autoClose=true)
             } else {
-                val socket = Socket()
-                socket.connect(InetSocketAddress(ip, port), timeout)
-                socket.soTimeout = timeout
                 val buf = ByteArray(1)
                 socket.getInputStream().read(buf)
                 socket.close()
             }
-            System.currentTimeMillis() - startTime
+            true
         } catch (e: Exception) {
-            -1L
+            false
         }
     }
 
@@ -573,7 +583,6 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
             }
             if (collided) {
                 newIp.angle = Random.nextFloat() * 360f
-                newIp.normalizedDistance = 0.35f + Random.nextFloat() * 0.50f
             }
             attempts++
         }
@@ -588,14 +597,20 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
             current.sortBy { it.ping }
         }
 
-        // Set distance from center proportional to ping rank within top 10
         val topCount = minOf(current.size, 10)
+        val topEntries = current.take(topCount)
+
+        // Set distance from center proportional to ping rank within top 10
         for (i in 0 until topCount) {
             val rank = i.toFloat() / maxOf(1f, topCount - 1f)
-            current[i].normalizedDistance = 0.3f + rank * 0.55f
+            topEntries[i].normalizedDistance = 0.3f + rank * 0.55f
         }
 
-        adjustToAvoidOverlap(newIp, current)
+        // Only adjust angles to avoid overlap, preserve distances
+        for (entry in topEntries) {
+            adjustToAvoidOverlap(entry, topEntries)
+        }
+
         _allAliveIps.value = current
     }
 

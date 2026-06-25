@@ -2750,42 +2750,42 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                         ) {
-                            // GitHub link
+                            // Nova Proxy
                             AboutLinkItem(
-                                title = "GitHub",
-                                subtitle = "https://github.com/mohammadmehrani",
-                                icon = Icons.Outlined.Code,
+                                title = "Nova Proxy",
+                                subtitle = "https://github.com/IRNova/NovaProxy",
+                                icon = Icons.Outlined.Cloud,
                                 onClick = {
                                     try {
-                                        uriHandler.openUri("https://github.com/mohammadmehrani")
+                                        uriHandler.openUri("https://github.com/IRNova/NovaProxy")
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
                                 }
                             )
 
-                            // Telegram link
+                            // Nova Radar
                             AboutLinkItem(
-                                title = "Telegram Channel",
-                                subtitle = "https://t.me/irnova_proxy",
-                                icon = Icons.Outlined.Send,
+                                title = "Nova Radar",
+                                subtitle = "https://github.com/IRNova/NovaRadar",
+                                icon = Icons.Outlined.Security,
                                 onClick = {
                                     try {
-                                        uriHandler.openUri("https://t.me/irnova_proxy")
+                                        uriHandler.openUri("https://github.com/IRNova/NovaRadar")
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
                                 }
                             )
 
-                            // Author link
+                            // Install Wizard
                             AboutLinkItem(
-                                title = "Author Contacts",
-                                subtitle = "https://t.me/irnovaproxy",
-                                icon = Icons.Outlined.Person,
+                                title = "Install Wizard",
+                                subtitle = "https://novaproxy.online/install",
+                                icon = Icons.Outlined.Language,
                                 onClick = {
                                     try {
-                                        uriHandler.openUri("https://t.me/irnovaproxy")
+                                        uriHandler.openUri("https://novaproxy.online/install")
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
@@ -2797,7 +2797,7 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
 
                         // Footer version label
                         Text(
-                            text = "v1.0.01",
+                            text = "v${com.novaradar.app.BuildConfig.VERSION_NAME}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
