@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
@@ -38,6 +39,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.*
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.novaradar.app.ui.localization.Localization
 import com.novaradar.app.ui.screens.*
@@ -57,7 +61,6 @@ class MainActivity : ComponentActivity() {
             val lang by viewModel.selectedLanguage.collectAsState()
 
             NovaRadarTheme(theme = theme) {
-                // Dynamically update status bar and navigation bar characteristics according to active theme style
                 val view = androidx.compose.ui.platform.LocalView.current
                 val isLightTheme = theme == AppTheme.PRISM_LIGHT
                 if (!view.isInEditMode) {
@@ -65,29 +68,24 @@ class MainActivity : ComponentActivity() {
                         val window = (view.context as android.app.Activity).window
                         window.statusBarColor = android.graphics.Color.TRANSPARENT
                         window.navigationBarColor = android.graphics.Color.TRANSPARENT
-                        
                         val controller = androidx.core.view.WindowCompat.getInsetsController(window, view)
-                        // If light theme is active, we showcase dark symbols to keep contrast legible
                         controller.isAppearanceLightStatusBars = isLightTheme
                         controller.isAppearanceLightNavigationBars = isLightTheme
                     }
                 }
 
-                // Outer bleed box with background gradient suited to active theme style
-                val startBgColor = MaterialTheme.colorScheme.background
-                val endBgColor = when (theme) {
-                    AppTheme.PRISM_DARK -> Color(0xFF060913)
-                    AppTheme.PRISM_LIGHT -> Color(0xFFECEFF4)
+                val isDark = theme == AppTheme.PRISM_DARK
+                val meshColors = if (isDark) {
+                    listOf(Color(0xFF0A0E1A), Color(0xFF0F1A3A), Color(0xFF060A15))
+                } else {
+                    listOf(Color(0xFFFFFFFF), Color(0xFFEFF6FF), Color(0xFFF8FAFC))
                 }
+                val meshGradient = Brush.linearGradient(colors = meshColors)
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(startBgColor, endBgColor)
-                            )
-                        )
+                        .background(meshGradient)
                 ) {
                     MainAppLayout(viewModel)
                 }
@@ -101,8 +99,13 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val theme by viewModel.selectedTheme.collectAsState()
     val isLightTheme = theme == AppTheme.PRISM_LIGHT
+    val isDark = !isLightTheme
     val pagerState = rememberPagerState(initialPage = 2, pageCount = { 5 })
     val coroutineScope = rememberCoroutineScope()
+
+    val headerHeight = 68.dp
+    val navBarHeight = 68.dp
+    val fadeHeight = 100.dp
 
     CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
         Box(
@@ -110,7 +113,7 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            // Horizontal Pager allows effortless fingertip scrolling between tabs
+            // Main content pager
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
@@ -126,21 +129,52 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                 }
             }
 
-            // Persistent Glassmorphic Top Header Box (Mirroring menu bounds / styling)
+            // Top fade overlay: content fades as it scrolls under the header
             Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            // Bottom fade overlay: content fades as it scrolls under the nav bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)
+                            )
+                        )
+                    )
+            )
+
+            // Glassmorphic Top Header
+            Surface(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 14.dp, start = 14.dp, end = 14.dp)
-                    .height(68.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(32.dp))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.55f))
-                    .border(
-                        width = 1.5.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
-                        shape = RoundedCornerShape(32.dp)
-                    ),
-                contentAlignment = Alignment.CenterStart
+                    .height(headerHeight)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(32.dp),
+                color = if (isDark) Color(0xFF151B2D).copy(alpha = 0.65f) else Color.White.copy(alpha = 0.65f),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = if (isDark) Color(0xFF4DA8FF).copy(alpha = 0.25f) else Color(0xFF2563EB).copy(alpha = 0.2f)
+                ),
+                tonalElevation = 8.dp
             ) {
                 Row(
                     modifier = Modifier
@@ -148,22 +182,21 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                         .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Adaptive brand picture logo
                     Image(
                         painter = painterResource(id = R.drawable.img_nova_radar_logo_1781975654739),
                         contentDescription = "Nova Radar Logo",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Fit
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Column {
                         Text(
                             text = "NOVA RADAR",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Black,
-                                color = if (isLightTheme) Color.Black else Color.White,
+                                color = if (isDark) Color.White else Color(0xFF1E293B),
                                 letterSpacing = 1.2.sp
                             )
                         )
@@ -173,55 +206,41 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.SemiBold
                             ),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                            color = if (isDark) Color(0xFF4DA8FF).copy(alpha = 0.8f) else Color(0xFF2563EB).copy(alpha = 0.8f),
                             letterSpacing = 1.5.sp
                         )
                     }
                 }
             }
 
-            // Floating Glassmorphic Navigation Capsule with enhanced visibility & glass translucency
+            // Floating Navigation Bar with glassmorphism
+            val isScanning by viewModel.isScanning.collectAsState()
+            val pulseAnim by rememberInfiniteTransition().animateFloat(
+                initialValue = 0.3f, targetValue = 1f,
+                animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+                label = "navPulse"
+            )
             NavigationBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(bottom = 14.dp, start = 14.dp, end = 14.dp)
-                    .height(68.dp)
+                    .padding(bottom = 12.dp, start = 14.dp, end = 14.dp)
+                    .height(navBarHeight)
                     .clip(RoundedCornerShape(32.dp))
                     .border(
                         width = 1.5.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                        color = if (isDark) Color(0xFF2D3A5C).copy(alpha = 0.5f) else Color(0xFFCBD5E1).copy(alpha = 0.5f),
                         shape = RoundedCornerShape(32.dp)
                     ),
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+                containerColor = if (isDark) Color(0xFF151B2D).copy(alpha = 0.7f) else Color.White.copy(alpha = 0.7f),
                 tonalElevation = 8.dp
             ) {
                 val items = listOf(
-                    NavigationItemData(
-                        key = "tab_installer",
-                        selectedIcon = Icons.Filled.Download,
-                        unselectedIcon = Icons.Outlined.Download
-                    ),
-                    NavigationItemData(
-                        key = "tab_settings",
-                        selectedIcon = Icons.Filled.Settings,
-                        unselectedIcon = Icons.Outlined.Settings
-                    ),
-                    NavigationItemData(
-                        key = "tab_radar",
-                        selectedIcon = Icons.Filled.Radar,
-                        unselectedIcon = Icons.Outlined.Radar
-                    ),
-                    NavigationItemData(
-                        key = "tab_logs",
-                        selectedIcon = Icons.Filled.List,
-                        unselectedIcon = Icons.Outlined.List
-                    ),
-                    NavigationItemData(
-                        key = "tab_about",
-                        selectedIcon = Icons.Filled.Info,
-                        unselectedIcon = Icons.Outlined.Info
-                    )
+                    NavigationItemData(key = "tab_installer", selectedIcon = Icons.Filled.Download, unselectedIcon = Icons.Outlined.Download),
+                    NavigationItemData(key = "tab_settings", selectedIcon = Icons.Filled.Settings, unselectedIcon = Icons.Outlined.Settings),
+                    NavigationItemData(key = "tab_radar", selectedIcon = Icons.Filled.Radar, unselectedIcon = Icons.Outlined.Radar),
+                    NavigationItemData(key = "tab_logs", selectedIcon = Icons.Filled.List, unselectedIcon = Icons.Outlined.List),
+                    NavigationItemData(key = "tab_about", selectedIcon = Icons.Filled.Info, unselectedIcon = Icons.Outlined.Info)
                 )
 
                 Row(
@@ -231,7 +250,7 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                     items.forEachIndexed { index, item ->
                         val isSelected = pagerState.currentPage == index
                         val isRadar = index == 2
-                        
+
                         NavigationBarItem(
                             selected = isSelected,
                             onClick = {
@@ -240,33 +259,78 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                                 }
                             },
                             icon = {
-                                if (isRadar) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.img_nova_radar_logo_1781975654739),
-                                        contentDescription = Localization.get(item.key, lang),
-                                        modifier = Modifier
-                                            .size(38.dp)
-                                            .clip(CircleShape)
-                                            .border(
-                                                width = if (isSelected) 1.5.dp else 0.5.dp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.25f),
-                                                shape = CircleShape
-                                            ),
-                                        contentScale = ContentScale.Fit,
-                                        alpha = if (isSelected) 1f else 0.75f
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                        contentDescription = Localization.get(item.key, lang),
-                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.size(if (isRadar) 56.dp else 44.dp)
+                                ) {
+                                    if (isSelected && !isRadar) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (isDark) Color.White.copy(alpha = 0.08f)
+                                                    else Color(0xFF2563EB).copy(alpha = 0.08f)
+                                                )
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = if (isDark) Color.White.copy(alpha = 0.12f)
+                                                    else Color(0xFF2563EB).copy(alpha = 0.12f),
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                    }
+                                    if (isRadar) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(56.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (isScanning)
+                                                        Brush.linearGradient(listOf(Color(0xFFBE123C), Color(0xFF9F1239)))
+                                                    else
+                                                        Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFF991B1B)))
+                                                )
+                                                .border(2.dp, if (isDark) Color.White.copy(alpha = 0.15f) else Color(0xFF2563EB).copy(alpha = 0.2f), CircleShape)
+                                                .clickable {
+                                                    if (isScanning) viewModel.stopScan() else viewModel.startScan()
+                                                }
+                                                .testTag("nav_start_button"),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (isScanning) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(60.dp)
+                                                        .clip(CircleShape)
+                                                        .background(Color(0xFFBE123C).copy(alpha = pulseAnim * 0.25f))
+                                                )
+                                            }
+                                            Icon(
+                                                imageVector = Icons.Default.PowerSettingsNew,
+                                                contentDescription = "Start/Stop",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
+                                    } else {
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                            contentDescription = Localization.get(item.key, lang),
+                                            tint = if (isSelected) {
+                                                if (isDark) Color(0xFF4DA8FF) else Color(0xFF2563EB)
+                                            } else {
+                                                if (isDark) Color(0xFFE2E8F0).copy(alpha = 0.4f)
+                                                else Color(0xFF334155).copy(alpha = 0.4f)
+                                            },
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
                                 }
                             },
                             alwaysShowLabel = false,
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = if (isRadar) Color.Transparent else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                indicatorColor = Color.Transparent
                             ),
                             modifier = Modifier.testTag("nav_item_${item.key}")
                         )

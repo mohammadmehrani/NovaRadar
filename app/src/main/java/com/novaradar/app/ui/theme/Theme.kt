@@ -7,42 +7,60 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.novaradar.app.ui.viewmodel.AppTheme
 
-val PrismDarkBg = Color(0xFF05060A)
-val PrismDarkSurface = Color(0xFF090B12)
-val PrismDarkPrimary = Color(0xFF22D3EE)
-val PrismDarkSecondary = Color(0xFFA855F7)
-val PrismDarkTertiary = Color(0xFF34D399)
-val PrismDarkOnBg = Color(0xFFEEF1F7)
+// Dark Mode: Deep navy with rich blue accents
+val DarkBg = Color(0xFF0A0E1A)
+val DarkMeshColors = listOf(Color(0xFF0A0E1A), Color(0xFF0F1A3A), Color(0xFF060A15))
+val DarkSurface = Color(0xFF151B2D)
+val DarkSurfaceVariant = Color(0xFF1E2740)
+val DarkPrimary = Color(0xFF4DA8FF)
+val DarkSecondary = Color(0xFF818CF8)
+val DarkTertiary = Color(0xFF34D399)
+val DarkOnBg = Color(0xFFE8EDF5)
+val DarkOnSurface = Color(0xFFE2E8F0)
+val DarkOutline = Color(0xFF2D3A5C)
 
-val PrismLightBg = Color(0xFFF7F8FC)
-val PrismLightSurface = Color(0xFFFFFFFF)
-val PrismLightPrimary = Color(0xFF0891B2)
-val PrismLightSecondary = Color(0xFF9333EA)
-val PrismLightTertiary = Color(0xFF0D9488)
-val PrismLightOnBg = Color(0xFF0D1117)
+// Light Mode: Clean white with navy-blue accents
+val LightBg = Color(0xFFF5F7FA)
+val LightMeshColors = listOf(Color(0xFFFFFFFF), Color(0xFFEFF6FF), Color(0xFFF8FAFC))
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFF1F5F9)
+val LightPrimary = Color(0xFF2563EB)
+val LightSecondary = Color(0xFF7C3AED)
+val LightTertiary = Color(0xFF059669)
+val LightOnBg = Color(0xFF1E293B)
+val LightOnSurface = Color(0xFF334155)
+val LightOutline = Color(0xFFCBD5E1)
 
-private val PrismDarkColorScheme = darkColorScheme(
-    primary = PrismDarkPrimary,
-    onPrimary = Color(0xFF05060A),
-    secondary = PrismDarkSecondary,
+val SuccessGreen = Color(0xFF34D399)
+val WarningAmber = Color(0xFFFBBF24)
+val ErrorRed = Color(0xFFEF4444)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = DarkPrimary,
+    onPrimary = Color(0xFF0A0E1A),
+    secondary = DarkSecondary,
     onSecondary = Color.White,
-    tertiary = PrismDarkTertiary,
-    background = PrismDarkBg,
-    onBackground = PrismDarkOnBg,
-    surface = PrismDarkSurface,
-    onSurface = PrismDarkOnBg
+    tertiary = DarkTertiary,
+    background = DarkBg,
+    onBackground = DarkOnBg,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    outline = DarkOutline
 )
 
-private val PrismLightColorScheme = lightColorScheme(
-    primary = PrismLightPrimary,
+private val LightColorScheme = lightColorScheme(
+    primary = LightPrimary,
     onPrimary = Color.White,
-    secondary = PrismLightSecondary,
+    secondary = LightSecondary,
     onSecondary = Color.White,
-    tertiary = PrismLightTertiary,
-    background = PrismLightBg,
-    onBackground = PrismLightOnBg,
-    surface = PrismLightSurface,
-    onSurface = PrismLightOnBg
+    tertiary = LightTertiary,
+    background = LightBg,
+    onBackground = LightOnBg,
+    surface = LightSurface,
+    onSurface = LightOnSurface,
+    surfaceVariant = LightSurfaceVariant,
+    outline = LightOutline
 )
 
 @Composable
@@ -51,8 +69,8 @@ fun NovaRadarTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (theme) {
-        AppTheme.PRISM_DARK -> PrismDarkColorScheme
-        AppTheme.PRISM_LIGHT -> PrismLightColorScheme
+        AppTheme.PRISM_DARK -> DarkColorScheme
+        AppTheme.PRISM_LIGHT -> LightColorScheme
     }
 
     MaterialTheme(

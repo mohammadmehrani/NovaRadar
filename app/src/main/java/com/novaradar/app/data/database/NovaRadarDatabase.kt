@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.novaradar.app.data.dao.IpSourceDao
 import com.novaradar.app.data.dao.PortConfigDao
 import com.novaradar.app.data.dao.ScanHistoryDao
@@ -13,11 +12,12 @@ import com.novaradar.app.data.model.PortConfig
 import com.novaradar.app.data.model.ScanHistory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Database(
     entities = [IpSource::class, PortConfig::class, ScanHistory::class],
-    version = 4,
+    version = 3,
     exportSchema = false
 )
 abstract class NovaRadarDatabase : RoomDatabase() {
@@ -37,36 +37,30 @@ abstract class NovaRadarDatabase : RoomDatabase() {
                     "nova_radar_database"
                 )
                 .fallbackToDestructiveMigration()
-                .addCallback(NovaRadarDatabaseCallback(scope))
                 .build()
                 INSTANCE = instance
+
+                // Populate defaults on first creation (Room's onCreate fires during build(),
+                // but at that point INSTANCE is null, so a callback can't access it).
+                scope.launch(Dispatchers.IO) {
+                    if (instance.ipSourceDao().getAllIpSources().first().isEmpty()) {
+                        populateDatabase(instance)
+                    }
+                }
+
                 instance
             }
         }
-    }
 
-    private class NovaRadarDatabaseCallback(
-        private val scope: CoroutineScope
-    ) : RoomDatabase.Callback() {
-        override fun onCreate(db: SupportSQLiteDatabase) {
-            super.onCreate(db)
-            INSTANCE?.let { database ->
-                scope.launch(Dispatchers.IO) {
-                    populateDatabase(database)
-                }
-            }
-        }
-
-        suspend fun populateDatabase(db: NovaRadarDatabase) {
-            // Default Ports
+        private suspend fun populateDatabase(db: NovaRadarDatabase) {
             val defaultPorts = listOf(
+                PortConfig(80, true),
                 PortConfig(443, true),
-                PortConfig(2053, true),
-                PortConfig(2083, true),
-                PortConfig(2087, true),
-                PortConfig(2096, true),
-                PortConfig(8443, true),
-                PortConfig(80, false),
+                PortConfig(2053, false),
+                PortConfig(2083, false),
+                PortConfig(2087, false),
+                PortConfig(2096, false),
+                PortConfig(8443, false),
                 PortConfig(2052, false),
                 PortConfig(2082, false),
                 PortConfig(2086, false),
@@ -76,7 +70,6 @@ abstract class NovaRadarDatabase : RoomDatabase() {
             val portDao = db.portConfigDao()
             defaultPorts.forEach { portDao.insertPortConfig(it) }
 
-            // Default IP Sources / Subnets (Cloudflare ranges used in desktop app)
             val defaultSources = listOf(
                 IpSource(1, "Cloudflare Official 1", "کلودفلر رسمی ۱", "103.21.244.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", true),
                 IpSource(2, "Cloudflare Official 2", "کلودفلر رسمی ۲", "103.22.200.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", true),

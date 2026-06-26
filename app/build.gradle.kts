@@ -1,6 +1,8 @@
 import java.net.URL
 import java.net.HttpURLConnection
 
+val appVersionName = "1.5.0"
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
@@ -17,8 +19,8 @@ android {
     applicationId = "com.novaradar.app"
     minSdk = 24
     targetSdk = 35
-    versionCode = 1
-    versionName = "1.0.01"
+    versionCode = 3
+    versionName = appVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -26,29 +28,39 @@ android {
   signingConfigs {
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/nova-radar-key.jks"
-      val keystoreFile = file(keystorePath)
-      if (keystoreFile.exists()) {
-        storeFile = keystoreFile
-        storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "NovaRadar2026"
-        keyAlias = System.getenv("KEY_ALIAS") ?: "nova-radar"
-        keyPassword = System.getenv("KEY_PASSWORD") ?: "NovaRadar2026"
-        enableV1Signing = true
-        enableV2Signing = true
-      }
+      storeFile = file(keystorePath)
+      storePassword = "NovaRadar2026"
+      keyAlias = "nova-radar"
+      keyPassword = "NovaRadar2026"
+      enableV1Signing = false
+      enableV2Signing = true
+    }
+    create("tempRelease") {
+      storeFile = file("${rootDir}/temp-release-key.jks")
+      storePassword = "password123"
+      keyAlias = "nova-radar"
+      keyPassword = "password123"
+      enableV1Signing = false
+      enableV2Signing = true
+    }
+    create("debugConfig") {
+      storeFile = file("${rootDir}/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
     }
   }
 
   buildTypes {
     release {
-      isCrunchPngs = false
+      isCrunchPngs = true
       isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      // Use release key if keystore available (local or CI), otherwise unsigned (won't validate)
-      val relCfg = signingConfigs.findByName("release")
-      signingConfig = if (relCfg?.storeFile != null) relCfg else null
+      isShrinkResources = false
+      // Use official release key for signing
+      signingConfig = signingConfigs.getByName("release")
     }
     debug {
-      // AGP uses its default debug keystore (~/.android/debug.keystore) automatically
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
 
@@ -80,10 +92,9 @@ android {
 
 androidComponents {
     onVariants { variant ->
-        val versionName = android.defaultConfig.versionName ?: "1.0.0"
         variant.outputs.forEach { output ->
             val abi = output.filters.find { it.filterType.name == "ABI" }?.identifier ?: "universal"
-            output.outputFileName.set("NovaRadar-v$versionName-$abi-release.apk")
+            output.outputFileName.set("NovaRadar-v${appVersionName}-${abi}-release.apk")
         }
     }
 }
@@ -153,7 +164,6 @@ dependencies {
 // Custom task to automatically download Vazirmatn Persian fonts during build
 tasks.register("downloadVazirFonts") {
     notCompatibleWithConfigurationCache("Downloads fonts dynamically")
-    outputs.upToDateWhen { false }
     doLast {
         val fontDir = file("src/main/res/font")
         if (!fontDir.exists()) {

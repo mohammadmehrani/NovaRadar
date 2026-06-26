@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -56,6 +55,7 @@ import com.novaradar.app.ui.viewmodel.AppLanguage
 import com.novaradar.app.ui.viewmodel.AppTheme
 import com.novaradar.app.ui.viewmodel.AliveIp
 import com.novaradar.app.ui.viewmodel.NovaRadarViewModel
+import com.novaradar.app.ui.theme.VazirmatnFontFamily
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -72,37 +72,19 @@ fun FadingScrollColumn(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val bgColor = MaterialTheme.colorScheme.background
+    // Make transparent to show the global gradient background
+    val bgColor = Color.Transparent
 
-        Column(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .drawWithContent {
-                drawContent()
-                // Top fading edge
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(bgColor, Color.Transparent),
-                        startY = 0f,
-                        endY = 60.dp.toPx()
-                    )
-                )
-                // Bottom fading edge
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, bgColor),
-                        startY = size.height - 80.dp.toPx(),
-                        endY = size.height
-                    )
-                )
-            }
             .verticalScroll(scrollState),
         horizontalAlignment = horizontalAlignment,
         verticalArrangement = verticalArrangement
     ) {
-        Spacer(modifier = Modifier.height(12.dp)) // Extra top spacing to clear header
+        Spacer(modifier = Modifier.height(100.dp))
         content()
-        Spacer(modifier = Modifier.height(20.dp)) // Bottom spacing
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
@@ -119,7 +101,7 @@ fun LocalizedLayout(lang: AppLanguage, content: @Composable () -> Unit) {
 @Composable
 fun GlassyCard(
     modifier: Modifier = Modifier,
-    borderColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+    borderColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
     content: @Composable ColumnScope.() -> Unit
 ) {
     val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
@@ -130,17 +112,17 @@ fun GlassyCard(
             .border(
                 width = 1.dp,
                 color = borderColor,
-                shape = RoundedCornerShape(24.dp)
+                shape = RoundedCornerShape(20.dp)
             ),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isLightTheme) MaterialTheme.colorScheme.surface.copy(alpha = 0.85f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.55f)
+            containerColor = if (isLightTheme) Color.White.copy(alpha = 0.5f) else Color(0xFF0A0E1A).copy(alpha = 0.5f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp),
             content = content
         )
@@ -160,6 +142,7 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
     val eta by viewModel.etaValue.collectAsState()
     val subnetScanning by viewModel.currentScanningSubnet.collectAsState()
     val allIps by viewModel.allAliveIps.collectAsState()
+    val recentProbes by viewModel.recentProbes.collectAsState()
 
     val subPagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
@@ -195,18 +178,15 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
     }
 
     val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
-    val cfg = LocalConfiguration.current
-    val isCompact = cfg.screenHeightDp < 650 || cfg.screenWidthDp < 380
-    val radarSize = if (isCompact) 180.dp else 240.dp
 
     LocalizedLayout(lang) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = if (isCompact) 12.dp else 96.dp, bottom = if (isCompact) 12.dp else 100.dp),
+                .padding(top = 96.dp, bottom = 100.dp)
+                .padding(horizontal = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Column(
@@ -251,7 +231,7 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                             .fillMaxWidth(0.6f)
                             .height(3.dp)
                             .background(
-                                color = if (isScannerActive) Color(0xFF10B981) else Color.Transparent,
+                                color = if (isScannerActive) Color(0xFF22D3EE) else Color.Transparent,
                                 shape = RoundedCornerShape(1.5.dp)
                             )
                     )
@@ -307,7 +287,7 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                             .fillMaxWidth()
                             .height(3.dp)
                             .background(
-                                color = if (isResultsActive) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                color = if (isResultsActive) Color(0xFF22D3EE) else Color.Transparent,
                                 shape = RoundedCornerShape(1.5.dp)
                             )
                     )
@@ -323,650 +303,313 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
             ) { page ->
                 when (page) {
                     0 -> {
-                        // SCANNER SUB-PAGE
+                        // DASHBOARD SUB-PAGE (IP input, radar, stat boxes, unique start/stop button)
+                        val targetIp = remember { mutableStateOf("") }
                         Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = 12.dp)
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Scrollable top section (radar + status)
-                            Column(
+                            // Radar (expands to fill space)
+                            Box(
                                 modifier = Modifier
+                                    .fillMaxWidth()
                                     .weight(1f)
-                                    .verticalScroll(rememberScrollState()),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    .clip(CircleShape)
+                                    .background(if (theme == AppTheme.PRISM_LIGHT) Color(0xFFF0FDF4) else Color(0xFF021708))
+                                    .border(2.dp, Color(0xFF34D399).copy(alpha = if (theme == AppTheme.PRISM_LIGHT) 0.6f else 0.7f), CircleShape)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {
+                                        if (allIps.isNotEmpty()) {
+                                            viewModel.copyTop10ToClipboard(context)
+                                            Toast.makeText(context, Localization.get("copied_note", lang), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    .testTag("radar_canvas_container"),
+                                contentAlignment = Alignment.Center
                             ) {
-                                // Rotating Cyber Radar Shape
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    val radius = size.minDimension / 2f
+                                    val center = Offset(size.width / 2f, size.height / 2f)
+                                    drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.35f), radius = radius * 0.35f, style = Stroke(width = 1.5f))
+                                    drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.35f), radius = radius * 0.65f, style = Stroke(width = 1.5f))
+                                    drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.5f), radius = radius * 0.95f, style = Stroke(width = 2.0f))
+                                    drawLine(color = Color(0xFF00FF66).copy(alpha = 0.25f), start = Offset(center.x - radius, center.y), end = Offset(center.x + radius, center.y), strokeWidth = 1.5f)
+                                    drawLine(color = Color(0xFF00FF66).copy(alpha = 0.25f), start = Offset(center.x, center.y - radius), end = Offset(center.x, center.y + radius), strokeWidth = 1.5f)
+                                    val sweepAlphaMultiplier = if (isScanning) 1.0f else 0.20f
+                                    val angleRad = Math.toRadians(animatedAngle.toDouble())
+                                    val endX = center.x + radius * cos(angleRad).toFloat()
+                                    val endY = center.y + radius * sin(angleRad).toFloat()
+                                    drawLine(color = Color(0xFF00FF66).copy(alpha = 0.85f * sweepAlphaMultiplier), start = center, end = Offset(endX, endY), strokeWidth = 3f)
+                                    drawIntoCanvas { canvas ->
+                                        canvas.save()
+                                        canvas.rotate(animatedAngle, center.x, center.y)
+                                        drawCircle(brush = sweepBrush, radius = radius * 0.95f, alpha = sweepAlphaMultiplier)
+                                        canvas.restore()
+                                    }
+                                    drawCircle(color = Color(0xFF00FF66), radius = 5.dp.toPx())
+                                    drawCircle(color = Color.Transparent, radius = 10.dp.toPx(), style = Stroke(width = 1.5f.dp.toPx()))
+                                    allIps.take(8).forEachIndexed { index, alive ->
+                                        val dotAngleRad = Math.toRadians(alive.angle.toDouble())
+                                        val distPx = alive.normalizedDistance * radius * 0.85f
+                                        val dotX = center.x + distPx * cos(dotAngleRad).toFloat()
+                                        val dotY = center.y + distPx * sin(dotAngleRad).toFloat()
+                                        val dotColor = when { alive.ping < 200 -> Color(0xFF34D399); alive.ping < 500 -> Color(0xFFFBBF24); alive.ping < 1000 -> Color(0xFFf87171); else -> Color(0xFF000000) }
+                                        val angleDiff = (animatedAngle - alive.angle + 360f) % 360f
+                                        val persistenceAlpha = if (isScanning) maxOf(0.15f, 1f - (angleDiff / 240f)) else 0.20f
+                                        drawCircle(color = dotColor.copy(alpha = 0.35f * persistenceAlpha), radius = 6.dp.toPx(), center = Offset(dotX, dotY))
+                                        drawCircle(color = dotColor.copy(alpha = persistenceAlpha), radius = 3.dp.toPx(), center = Offset(dotX, dotY))
+                                    }
+                                }
+                            }
+
+                            // Scan status HUD line (subnet only — counts in stat boxes below)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (!isLightTheme) Color(0xFF0A0E1A).copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f))
+                                    .border(1.dp, Color(0xFF00FF66).copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(if (isScanning) Color(0xFF00FF66) else Color(0xFF00FF66).copy(alpha = 0.3f)))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = if (isScanning) subnetScanning.ifEmpty { "SCANNING..." } else "STANDBY",
+                                            fontFamily = FontFamily.Monospace, fontSize = 8.sp,
+                                            color = Color(0xFF00FF66).copy(alpha = 0.8f), letterSpacing = 1.sp
+                                        )
+                                    }
+                                    Text("ETA $eta", fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = Color(0xFFFBBF24).copy(alpha = 0.7f))
+                                }
+                            }
+
+                            // 4 Stat Boxes (2x2 grid, fixed-width values)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                        .background(if (!isLightTheme) Color(0xFF0A0E1A).copy(alpha = 0.4f) else Color.White.copy(alpha = 0.25f))
+                                        .border(0.5.dp, Color(0xFF00FF66).copy(alpha = 0.15f), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(Color(0xFF00FF66).copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.Radar, null, tint = Color(0xFF00FF66).copy(alpha = 0.7f), modifier = Modifier.size(14.dp))
+                                        }
+                                        Spacer(Modifier.width(6.dp))
+                                        Column {
+                                            Text("SCANNED", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFF00FF66).copy(alpha = 0.5f), letterSpacing = 1.sp)
+                                            Text(String.format("%5d", scannedCount),
+                                                fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                                        }
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                        .background(if (!isLightTheme) Color(0xFF064E3B).copy(alpha = 0.2f) else Color(0xFFD1FAE5).copy(alpha = 0.4f))
+                                        .border(0.5.dp, Color(0xFF34D399).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(Color(0xFF34D399).copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF34D399), modifier = Modifier.size(14.dp))
+                                        }
+                                        Spacer(Modifier.width(6.dp))
+                                        Column {
+                                            Text("ALIVE", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFF34D399).copy(alpha = 0.7f), letterSpacing = 1.sp)
+                                            Text(String.format("%5d", aliveCount),
+                                                fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF34D399))
+                                        }
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                        .background(if (!isLightTheme) Color(0xFF7F1D1D).copy(alpha = 0.15f) else Color(0xFFFEE2E2).copy(alpha = 0.4f))
+                                        .border(0.5.dp, Color(0xFFEF4444).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(Color(0xFFEF4444).copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.Dangerous, null, tint = Color(0xFFEF4444).copy(alpha = 0.8f), modifier = Modifier.size(14.dp))
+                                        }
+                                        Spacer(Modifier.width(6.dp))
+                                        Column {
+                                            Text("DEAD", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFFEF4444).copy(alpha = 0.7f), letterSpacing = 1.sp)
+                                            Text(String.format("%5d", deadCount),
+                                                fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444))
+                                        }
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                        .background(if (!isLightTheme) Color(0xFF78350F).copy(alpha = 0.15f) else Color(0xFFFEF3C7).copy(alpha = 0.4f))
+                                        .border(0.5.dp, Color(0xFFFBBF24).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(modifier = Modifier.size(24.dp).clip(CircleShape).background(Color(0xFFFBBF24).copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.HourglassEmpty, null, tint = Color(0xFFFBBF24).copy(alpha = 0.8f), modifier = Modifier.size(14.dp))
+                                        }
+                                        Spacer(Modifier.width(6.dp))
+                                        Column {
+                                            Text("ETA", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFFFBBF24).copy(alpha = 0.7f), letterSpacing = 1.sp)
+                                            Text(String.format("%5s", eta),
+                                                fontFamily = FontFamily.Monospace, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFBBF24))
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Live Probe Feed (scrolling IP results)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (!isLightTheme) Color(0xFF0A0E1A).copy(alpha = 0.6f) else Color.White.copy(alpha = 0.3f))
+                                    .border(0.5.dp, Color(0xFF00FF66).copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Column {
+                                    Text("PROBE FEED", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFF00FF66).copy(alpha = 0.4f), letterSpacing = 1.sp)
+                                    Box(Modifier.fillMaxWidth().weight(1f)) {
+                                        val displayList = recentProbes.take(8)
+                                        if (displayList.isEmpty()) {
+                                            Text("awaiting scan...", fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = Color(0xFF00FF66).copy(alpha = 0.2f))
+                                        } else {
+                                            LazyColumn(
+                                                modifier = Modifier.fillMaxSize(),
+                                                verticalArrangement = Arrangement.spacedBy(0.dp)
+                                            ) {
+                                                items(displayList, key = { it.hashCode() }) { entry ->
+                                                    Text(entry, fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = Color(0xFF00FF66).copy(alpha = 0.7f), maxLines = 1)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Live Clean IPs found (recently verified)
+                            if (allIps.isNotEmpty()) {
                                 Box(
                                     modifier = Modifier
-                                        .size(radarSize)
-                                        .clip(CircleShape)
-                                        .background(if (theme == AppTheme.PRISM_LIGHT) Color(0xFFF0FDF4) else Color(0xFF021708))
-                                        .border(2.dp, Color(0xFF34D399).copy(alpha = if (theme == AppTheme.PRISM_LIGHT) 0.6f else 0.7f), CircleShape)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = ripple(bounded = true, radius = 160.dp)
-                                        ) {
-                                            if (allIps.isNotEmpty()) {
-                                                viewModel.copyTop10ToClipboard(context)
-                                                Toast.makeText(context, Localization.get("copied_note", lang), Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                        .testTag("radar_canvas_container"),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // Scan control overlay on compact screens
-                                    if (isCompact) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .padding(bottom = 8.dp)
-                                                .clip(RoundedCornerShape(20.dp))
-                                                .background(
-                                                    if (isScanning) Color(0xFFBE123C).copy(alpha = 0.9f)
-                                                    else Color(0xFFB00020).copy(alpha = 0.9f)
-                                                )
-                                                .clickable(
-                                                    interactionSource = remember { MutableInteractionSource() },
-                                                    indication = null
-                                                ) {
-                                                    if (isScanning) viewModel.stopScan() else viewModel.startScan()
-                                                }
-                                                .testTag("scan_trigger_button")
-                                                .padding(horizontal = 16.dp, vertical = 6.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = if (isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                                    contentDescription = "Scan",
-                                                    tint = Color.White,
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text = if (isScanning) Localization.get("stop_scan", lang) else Localization.get("start_scan", lang),
-                                                    fontSize = 11.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color.White
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Canvas(modifier = Modifier.fillMaxSize()) {
-                                        val radius = size.minDimension / 2f
-                                        val center = Offset(size.width / 2f, size.height / 2f)
-
-                                        // Draw concentric radar grids with immersive green color
-                                        drawCircle(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.35f),
-                                            radius = radius * 0.35f,
-                                            style = Stroke(width = 1.5f)
-                                        )
-                                        drawCircle(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.35f),
-                                            radius = radius * 0.65f,
-                                            style = Stroke(width = 1.5f)
-                                        )
-                                        drawCircle(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.5f),
-                                            radius = radius * 0.95f,
-                                            style = Stroke(width = 2.0f)
-                                        )
-
-                                        // Draw crosshairs
-                                        drawLine(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.25f),
-                                            start = Offset(center.x - radius, center.y),
-                                            end = Offset(center.x + radius, center.y),
-                                            strokeWidth = 1.5f
-                                        )
-                                        drawLine(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.25f),
-                                            start = Offset(center.x, center.y - radius),
-                                            end = Offset(center.x, center.y + radius),
-                                            strokeWidth = 1.5f
-                                        )
-
-                                        // Always draw continuous sweeps of the scan wedge - authentic and always alive like Air Traffic Control radars!
-                                        val sweepAlphaMultiplier = if (isScanning) 1.0f else 0.20f
-                                        val angleRad = Math.toRadians(animatedAngle.toDouble())
-                                        val endX = center.x + radius * cos(angleRad).toFloat()
-                                        val endY = center.y + radius * sin(angleRad).toFloat()
-
-                                        // Main scanning Sweep Line
-                                        drawLine(
-                                            color = Color(0xFF00FF66).copy(alpha = 0.85f * sweepAlphaMultiplier),
-                                            start = center,
-                                            end = Offset(endX, endY),
-                                            strokeWidth = 3f
-                                        )
-
-                                        // Canvas Rotation to align with sweep line (using cached sweepBrush)
-                                        drawIntoCanvas { canvas ->
-                                            canvas.save()
-                                            canvas.rotate(animatedAngle, center.x, center.y)
-                                            drawCircle(
-                                                brush = sweepBrush,
-                                                radius = radius * 0.95f,
-                                                alpha = sweepAlphaMultiplier
-                                            )
-                                            canvas.restore()
-                                        }
-
-                                        // Draw Central core beacon dot
-                                        drawCircle(color = Color(0xFF00FF66), radius = 5.dp.toPx())
-                                        drawCircle(
-                                            color = Color.Transparent,
-                                            radius = 10.dp.toPx(),
-                                            style = Stroke(width = 1.5f.dp.toPx())
-                                        )
-
-                                        // Draw Top Target IP Dots — only top 10, sorted by ping
-                                        allIps.take(10).forEachIndexed { index, alive ->
-                                            val dotAngleRad = Math.toRadians(alive.angle.toDouble())
-                                            val distPx = alive.normalizedDistance * radius * 0.85f
-
-                                            val dotX = center.x + distPx * cos(dotAngleRad).toFloat()
-                                            val dotY = center.y + distPx * sin(dotAngleRad).toFloat()
-
-                                            val dotColor = when {
-                                                alive.ping < 200 -> Color(0xFF34D399)
-                                                alive.ping < 500 -> Color(0xFFFBBF24)
-                                                alive.ping < 1000 -> Color(0xFFf87171)
-                                                else -> Color(0xFF000000)
-                                            }
-
-                                            // Calculate sweep angle offset to derive fade intensity
-                                            val angleDiff = (animatedAngle - alive.angle + 360f) % 360f
-                                            val persistenceAlpha = if (isScanning) {
-                                                maxOf(0.15f, 1f - (angleDiff / 240f))
-                                            } else {
-                                                0.20f // faint default when idle
-                                            }
-
-                                            // Target dot glow
-                                            drawCircle(
-                                                color = dotColor.copy(alpha = 0.35f * persistenceAlpha),
-                                                radius = 8.dp.toPx(),
-                                                center = Offset(dotX, dotY)
-                                            )
-                                            // Core dot
-                                            drawCircle(
-                                                color = dotColor.copy(alpha = persistenceAlpha),
-                                                radius = 4.dp.toPx(),
-                                                center = Offset(dotX, dotY)
-                                            )
-
-                                            drawIntoCanvas { canvas ->
-                                                textPaint.color = if (dotColor == Color(0xFF000000)) {
-                                                    android.graphics.Color.GRAY
-                                                } else {
-                                                    dotColor.copy(alpha = persistenceAlpha).toArgb()
-                                                }
-                                                textPaint.textSize = 9.5f.dp.toPx()
-                                                canvas.nativeCanvas.drawText(
-                                                    "${alive.ping}ms",
-                                                    dotX,
-                                                    dotY - 8.dp.toPx(),
-                                                    textPaint
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Scanning Status Panel with LARGE scan target readout inside a high-tech GlassyCard
-                                GlassyCard(
-                                    modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    borderColor = Color(0xFF10B981).copy(alpha = 0.35f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (!isLightTheme) Color(0xFF064E3B).copy(alpha = 0.25f) else Color(0xFFD1FAE5).copy(alpha = 0.3f))
+                                        .border(0.5.dp, Color(0xFF34D399).copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = if (isScanning) Localization.get("current_scanning", lang) else Localization.get("ready_to_scan", lang),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                            modifier = Modifier.testTag("subnet_status")
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = if (isScanning && subnetScanning.isNotEmpty()) {
-                                                subnetScanning.substringBefore(":")
-                                            } else {
-                                                "READY TO ENGINE"
-                                            },
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontFamily = FontFamily.Monospace,
-                                                fontWeight = FontWeight.Black,
-                                                letterSpacing = 1.sp
-                                            ),
-                                            color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF0F172A) else Color.White
-                                        )
-                                    }
-                                }
-
-                            } // End scrollable top section
-
-                                // High-Polish Cyberpunk 2x2 Stats Grid — Derived directly from desktop/mobile HUD mocks
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        // Scanned Card
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(
-                                                    if (theme == AppTheme.PRISM_LIGHT) {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFFE0F2FE), Color(0xFFEFF6FF)))
-                                                    } else {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFF1E3A8A).copy(alpha = 0.25f), Color(0xFF0F172A).copy(alpha = 0.5f)))
-                                                    }
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.40f),
-                                                    shape = RoundedCornerShape(22.dp)
-                                                )
-                                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = Localization.get("scanned", lang).uppercase(),
-                                                        style = MaterialTheme.typography.labelMedium.copy(
-                                                            fontWeight = FontWeight.Bold,
-                                                            letterSpacing = 1.sp
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF1E40AF) else MaterialTheme.colorScheme.primary
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = if (scannedCount >= 1000) String.format("%.1fK", scannedCount / 1000.0) else scannedCount.toString(),
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Black
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF1D4ED8) else MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                }
-                                                Icon(
-                                                    imageVector = Icons.Default.Radar,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-
-                                        // Alive Card
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(
-                                                    if (theme == AppTheme.PRISM_LIGHT) {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFFD1FAE5), Color(0xFFECFDF5)))
-                                                    } else {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFF064E3B).copy(alpha = 0.25f), Color(0xFF022C22).copy(alpha = 0.5f)))
-                                                    }
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF10B981).copy(alpha = 0.5f) else Color(0xFF10B981).copy(alpha = 0.45f),
-                                                    shape = RoundedCornerShape(22.dp)
-                                                )
-                                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = Localization.get("alive", lang).uppercase(),
-                                                        style = MaterialTheme.typography.labelMedium.copy(
-                                                            fontWeight = FontWeight.Bold,
-                                                            letterSpacing = 1.sp
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF065F46) else Color(0xFF10B981)
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = if (aliveCount >= 1000) String.format("%.1fK", aliveCount / 1000.0) else aliveCount.toString(),
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Black
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF047857) else Color(0xFF10B981)
-                                                    )
-                                                }
-                                                Icon(
-                                                    imageVector = Icons.Default.CheckCircle,
-                                                    contentDescription = null,
-                                                    tint = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF059669) else Color(0xFF10B981).copy(alpha = 0.8f),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        // Dead Card
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(
-                                                    if (theme == AppTheme.PRISM_LIGHT) {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFFFEE2E2), Color(0xFFFEF2F2)))
-                                                    } else {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFF7F1D1D).copy(alpha = 0.2f), Color(0xFF450A0A).copy(alpha = 0.5f)))
-                                                    }
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFEF4444).copy(alpha = 0.5f) else Color(0xFFEF4444).copy(alpha = 0.4f),
-                                                    shape = RoundedCornerShape(22.dp)
-                                                )
-                                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = Localization.get("dead", lang).uppercase(),
-                                                        style = MaterialTheme.typography.labelMedium.copy(
-                                                            fontWeight = FontWeight.Bold,
-                                                            letterSpacing = 1.sp
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF991B1B) else Color(0xFFEF4444)
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = if (deadCount >= 1000) String.format("%.1fK", deadCount / 1000.0) else deadCount.toString(),
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Black
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFB91C1C) else Color(0xFFEF4444)
-                                                    )
-                                                }
-                                                Icon(
-                                                    imageVector = Icons.Default.Dangerous,
-                                                    contentDescription = null,
-                                                    tint = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFDC2626) else Color(0xFFEF4444).copy(alpha = 0.8f),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-
-                                        // ETA Card
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(22.dp))
-                                                .background(
-                                                    if (theme == AppTheme.PRISM_LIGHT) {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFFFEF3C7), Color(0xFFFFFBEB)))
-                                                    } else {
-                                                        Brush.linearGradient(colors = listOf(Color(0xFF78350F).copy(alpha = 0.2f), Color(0xFF451A03).copy(alpha = 0.5f)))
-                                                    }
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFFBBF24).copy(alpha = 0.5f) else Color(0xFFFBBF24).copy(alpha = 0.35f),
-                                                    shape = RoundedCornerShape(22.dp)
-                                                )
-                                                .padding(horizontal = 14.dp, vertical = 8.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = Localization.get("eta", lang).uppercase(),
-                                                        style = MaterialTheme.typography.labelMedium.copy(
-                                                            fontWeight = FontWeight.Bold,
-                                                            letterSpacing = 1.sp
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFF92400E) else Color(0xFFFBBF24)
-                                                    )
-                                                    Spacer(modifier = Modifier.height(2.dp))
-                                                    Text(
-                                                        text = eta,
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Black
-                                                        ),
-                                                        color = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFB45309) else Color(0xFFFBBF24)
-                                                    )
-                                                }
-                                                Icon(
-                                                    imageVector = Icons.Default.HourglassEmpty,
-                                                    contentDescription = null,
-                                                    tint = if (theme == AppTheme.PRISM_LIGHT) Color(0xFFD97706) else Color(0xFFFBBF24).copy(alpha = 0.8f),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (!isCompact) {
-                                    // Big Start/Stop Engine Button (standalone on spacious screens)
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(52.dp)
-                                            .clip(RoundedCornerShape(26.dp))
-                                            .background(
-                                                if (isScanning) {
-                                                    Brush.linearGradient(listOf(Color(0xFFF43F5E), Color(0xFFBE123C)))
-                                                } else {
-                                                    Brush.linearGradient(listOf(Color(0xFFFF2E63), Color(0xFFB00020)))
-                                                }
-                                            )
-                                            .clickable { if (isScanning) viewModel.stopScan() else viewModel.startScan() }
-                                            .testTag("scan_trigger_button"),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    Column {
+                                        Text("CLEAN FOUND", fontFamily = FontFamily.Monospace, fontSize = 7.sp, color = Color(0xFF34D399).copy(alpha = 0.6f), letterSpacing = 1.sp)
+                                        Spacer(Modifier.height(2.dp))
                                         Row(
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
-                                            Icon(
-                                                imageVector = if (isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                                                contentDescription = "Scan Icon",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = if (isScanning) Localization.get("stop_scan", lang) else Localization.get("start_scan", lang),
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Black,
-                                                color = Color.White
-                                            )
+                                            allIps.take(3).forEach { alive ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .background(Color(0xFF34D399).copy(alpha = 0.1f))
+                                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                                ) {
+                                                    Text(
+                                                        "${alive.ip}:${alive.port} ${alive.ping}ms",
+                                                        fontFamily = FontFamily.Monospace, fontSize = 7.sp,
+                                                        color = Color(0xFF34D399).copy(alpha = 0.9f),
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                    }
 
                     1 -> {
-                        // RESULTS SUB-PAGE (Entirely scrollable list of diagnostic results)
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
+                        // RESULTS + TERMINAL COMBINED SUB-PAGE
+                        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            // Toolbar: label + action buttons
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = Localization.get("alive_results", lang),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    // Copy top results
-                                    IconButton(
-                                        onClick = {
-                                            viewModel.copyTop10ToClipboard(context)
-                                            Toast.makeText(context, Localization.get("copied_note", lang), Toast.LENGTH_SHORT).show()
-                                        },
-                                        modifier = Modifier.size(28.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.FormatListNumbered,
-                                            contentDescription = "Copy Top 10",
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(Color(0xFF00FF66).copy(alpha = 0.5f)))
+                                    Spacer(Modifier.width(5.dp))
+                                    Text("LIVE TERMINAL", fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = Color(0xFF00FF66).copy(alpha = 0.6f), letterSpacing = 1.sp)
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    IconButton(onClick = { viewModel.copyTop10ToClipboard(context); Toast.makeText(context, Localization.get("copied_note", lang), Toast.LENGTH_SHORT).show() }, modifier = Modifier.size(24.dp)) {
+                                        Icon(Icons.Default.FormatListNumbered, "Copy Top 10", tint = Color(0xFF22D3EE), modifier = Modifier.size(14.dp))
                                     }
-
-                                    // Copy All
-                                    IconButton(
-                                        onClick = {
-                                            viewModel.copyAllToClipboard(context)
-                                        },
-                                        modifier = Modifier.size(28.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.ContentCopy,
-                                            contentDescription = "Copy All",
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                    IconButton(onClick = { viewModel.copyAllToClipboard(context) }, modifier = Modifier.size(24.dp)) {
+                                        Icon(Icons.Default.ContentCopy, "Copy All", tint = Color(0xFF22D3EE), modifier = Modifier.size(14.dp))
                                     }
-
-                                    // Export results
-                                    IconButton(
-                                        onClick = {
-                                            viewModel.exportResultsToTxtFile(context)
-                                        },
-                                        modifier = Modifier.size(28.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Save,
-                                            contentDescription = "Save to TXT",
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
+                                    IconButton(onClick = { viewModel.exportResultsToTxtFile(context) }, modifier = Modifier.size(24.dp)) {
+                                        Icon(Icons.Default.Save, "Save to TXT", tint = Color(0xFF22D3EE), modifier = Modifier.size(14.dp))
                                     }
                                 }
                             }
 
-                            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                            // MFD-style terminal results (black/green)
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFF050A10))
+                                    .border(1.dp, Color(0xFF00FF66).copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+                                    .padding(6.dp)
+                            ) {
                                 if (allIps.isEmpty()) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f),
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                         Text(
-                                            text = Localization.get("no_results_desc", lang),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                                            textAlign = TextAlign.Center
+                                            text = if (isScanning) ">> AWAITING TARGET ACQUISITION <<" else ">> NO TARGETS <<",
+                                            fontFamily = FontFamily.Monospace, fontSize = 9.sp,
+                                            color = Color(0xFF00FF66).copy(alpha = 0.3f), letterSpacing = 1.sp
                                         )
                                     }
                                 } else {
                                     LazyColumn(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(24.dp))
-                                            .background(
-                                                if (MaterialTheme.colorScheme.background.luminance() > 0.5f)
-                                                    Color.White.copy(alpha = 0.85f)
-                                                else
-                                                    Color(0xFF111625).copy(alpha = 0.65f)
-                                            )
-                                            .border(
-                                                width = 1.dp,
-                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                                shape = RoundedCornerShape(24.dp)
-                                            )
-                                            .padding(12.dp),
-                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.spacedBy(1.dp)
                                     ) {
                                         items(allIps, key = { it.hashCode() }) { alive ->
                                             Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+                                                modifier = Modifier.fillMaxWidth()
+                                                    .clip(RoundedCornerShape(3.dp))
+                                                    .background(Color(0xFF00FF66).copy(alpha = 0.03f))
                                                     .clickable { viewModel.copyIndividualToClipboard(context, alive) }
-                                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                                    .padding(horizontal = 6.dp, vertical = 3.dp),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.weight(1f)
-                                                ) {
-                                                    // Connection Status Bullet Dot
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(6.dp)
-                                                            .clip(CircleShape)
-                                                            .background(
-                                                                 when {
-                                                                     alive.ping < 200 -> Color(0xFF34D399)
-                                                                     alive.ping < 500 -> Color(0xFFFBBF24)
-                                                                     alive.ping < 1000 -> Color(0xFFf87171)
-                                                                     else -> Color(0xFF000000)
-                                                                 }
-                                                            )
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = "${alive.ip}:${alive.port}#Nova-${alive.novaId}",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
+                                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                                    Box(Modifier.size(4.dp).clip(CircleShape).background(when { alive.ping < 200 -> Color(0xFF34D399); alive.ping < 500 -> Color(0xFFFBBF24); else -> Color(0xFFf87171) }))
+                                                    Spacer(Modifier.width(5.dp))
+                                                    Text("${alive.ip}:${alive.port}#Nova-${alive.novaId}", fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = Color(0xFF00FF66).copy(alpha = 0.85f))
                                                 }
-
-                                                Text(
-                                                    text = "${alive.ping}ms",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = when {
-                                                        alive.ping < 200 -> Color(0xFF34D399)
-                                                        alive.ping < 500 -> Color(0xFFFBBF24)
-                                                        alive.ping < 1000 -> Color(0xFFf87171)
-                                                        else -> Color(0xFF000000)
-                                                    },
-                                                    fontWeight = FontWeight.Bold
-                                                )
+                                                Text("${alive.ping}ms", fontFamily = FontFamily.Monospace, fontSize = 8.sp, color = when { alive.ping < 200 -> Color(0xFF34D399); alive.ping < 500 -> Color(0xFFFBBF24); else -> Color(0xFFf87171) })
                                             }
                                         }
                                     }
@@ -1052,7 +695,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .padding(top = 96.dp, bottom = 100.dp),
+                .padding(horizontal = 14.dp),
         ) {
             // Header
             MeshBackgroundCard(
@@ -1206,9 +849,9 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             placeholder = { Text(text = if (isFa) "افزودن توکن یا دمو برای تست آزمایشی..." else "Paste token or type demo...") },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color(0xFF22D3EE),
+                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else Color(0xFF22D3EE).copy(alpha = 0.2f),
+                                focusedLabelColor = Color(0xFF22D3EE),
                                 focusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.4f),
                                 unfocusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.2f)
                             ),
@@ -1223,9 +866,9 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             label = { Text(text = if (isFa) "نام اسکریپت ورکر" else "Worker Script Name") },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color(0xFF22D3EE),
+                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else Color(0xFF22D3EE).copy(alpha = 0.2f),
+                                focusedLabelColor = Color(0xFF22D3EE),
                                 focusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.4f),
                                 unfocusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.2f)
                             ),
@@ -1246,9 +889,9 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                 singleLine = true,
                                 modifier = Modifier.weight(1f),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    focusedBorderColor = Color(0xFF22D3EE),
+                                    unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else Color(0xFF22D3EE).copy(alpha = 0.2f),
+                                    focusedLabelColor = Color(0xFF22D3EE),
                                     focusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.4f),
                                     unfocusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.2f)
                                 ),
@@ -1260,12 +903,12 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                    .background(Color(0xFF22D3EE).copy(alpha = 0.12f))
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
                                     contentDescription = "Regenerate UUID",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = Color(0xFF22D3EE)
                                 )
                             }
                         }
@@ -1277,9 +920,9 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             label = { Text(text = if (isFa) "آی‌پی/دامنه عبوری تمیز ورکر" else "Clean Proxy IP / Host") },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                focusedBorderColor = Color(0xFF22D3EE),
+                                unfocusedBorderColor = if (isLightTheme) Color(0xFFE2E8F0) else Color(0xFF22D3EE).copy(alpha = 0.2f),
+                                focusedLabelColor = Color(0xFF22D3EE),
                                 focusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.4f),
                                 unfocusedContainerColor = if (isLightTheme) Color.White else Color(0xFF0F172A).copy(alpha = 0.2f)
                             ),
@@ -1322,7 +965,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             enabled = !isDeploying,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = Color(0xFF22D3EE)
                             ),
                             shape = RoundedCornerShape(14.dp)
                         ) {
@@ -1376,21 +1019,21 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(Color(0xFF030712))
-                                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                                    .border(1.dp, Color(0xFF22D3EE).copy(alpha = 0.2f), RoundedCornerShape(16.dp))
                                     .padding(12.dp)
                             ) {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     deployLogs.forEach { log ->
                                         Text(
                                             text = log,
-                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                                            color = Color(0xFF10B981)
+                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = VazirmatnFontFamily),
+                                            color = Color(0xFF22D3EE)
                                         )
                                     }
                                     if (deployError.isNotEmpty()) {
                                         Text(
                                             text = "❌ $deployError",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = VazirmatnFontFamily),
                                             color = Color(0xFFEF4444)
                                         )
                                     }
@@ -1400,14 +1043,14 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
                                             CircularProgressIndicator(
-                                                color = MaterialTheme.colorScheme.primary,
+                                                color = Color(0xFF22D3EE),
                                                 modifier = Modifier.size(10.dp),
                                                 strokeWidth = 1.dp
                                             )
                                             Text(
                                                 text = if (isFa) "در حال پردازش عملیات..." else "Executing stack operation...",
                                                 style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontFamily = FontFamily.Monospace,
+                                                    fontFamily = VazirmatnFontFamily,
                                                     fontStyle = FontStyle.Italic
                                                 ),
                                                 color = Color.Gray
@@ -1435,7 +1078,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             Text(
                                 text = if (isFa) "🎉 ورکر با موفقیت راه‌اندازی شد!" else "🎉 Deployment Succeeded!",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                                color = Color(0xFF10B981),
+                                color = Color(0xFF22D3EE),
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                             
@@ -1456,7 +1099,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                             Box(
                                 modifier = Modifier
                                     .size(140.dp)
-                                    .border(1.5.dp, Color(0xFF10B981), RoundedCornerShape(16.dp))
+                                    .border(1.5.dp, Color(0xFF22D3EE), RoundedCornerShape(16.dp))
                                     .padding(8.dp)
                             ) {
                                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -1474,7 +1117,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                             val isDot = ((hash shr (r * cols + c)) and 1) == 1
                                             if (isFinder || isDot) {
                                                 drawRect(
-                                                    color = Color(0xFF10B981).copy(alpha = if (isFinder) 0.95f else 0.7f),
+                                                    color = Color(0xFF22D3EE).copy(alpha = if (isFinder) 0.95f else 0.7f),
                                                     topLeft = Offset(c * cellW + 1.5f, r * cellH + 1.5f),
                                                     size = androidx.compose.ui.geometry.Size(cellW - 3f, cellH - 3f)
                                                 )
@@ -1516,7 +1159,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                 ) {
                                     Text(
                                         text = subUrl,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = VazirmatnFontFamily),
                                         color = if (isLightTheme) Color(0xFF334155) else Color.LightGray,
                                         modifier = Modifier.weight(1f),
                                         maxLines = 1
@@ -1536,7 +1179,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                         Icon(
                                             imageVector = Icons.Default.ContentCopy,
                                             contentDescription = "Copy Link",
-                                            tint = MaterialTheme.colorScheme.primary,
+                                            tint = Color(0xFF22D3EE),
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
@@ -1558,7 +1201,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF10B981)
+                                    containerColor = Color(0xFF22D3EE)
                                 ),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
@@ -1644,13 +1287,13 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                         Box(
                             modifier = Modifier
                                 .size(28.dp)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
+                                .background(Color(0xFF22D3EE).copy(alpha = 0.15f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "۱",
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
-                                color = MaterialTheme.colorScheme.primary
+                                color = Color(0xFF22D3EE)
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
@@ -1758,7 +1401,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                 ) {
                                     Text(
                                         text = subscriptionUrl,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = VazirmatnFontFamily),
                                         color = if (isLightTheme) Color(0xFF334155) else Color.LightGray,
                                         modifier = Modifier.weight(1f),
                                         maxLines = 1
@@ -1800,13 +1443,13 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                         Box(
                             modifier = Modifier
                                 .size(28.dp)
-                                .background(Color(0xFF10B981).copy(alpha = 0.15f), CircleShape),
+                                .background(Color(0xFF22D3EE).copy(alpha = 0.15f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "۳",
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
-                                color = Color(0xFF10B981)
+                                color = Color(0xFF22D3EE)
                             )
                         }
                         Column(modifier = Modifier.weight(1f)) {
@@ -1841,7 +1484,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                     )
                                     .border(
                                         width = 1.dp,
-                                        color = Color(0xFF10B981).copy(alpha = 0.4f),
+                                        color = Color(0xFF22D3EE).copy(alpha = 0.4f),
                                         shape = RoundedCornerShape(16.dp)
                                     )
                             ) {
@@ -1855,7 +1498,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                     Box(
                                         modifier = Modifier
                                             .size(100.dp)
-                                            .border(1.5.dp, Color(0xFF10B981).copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                                            .border(1.5.dp, Color(0xFF22D3EE).copy(alpha = 0.7f), RoundedCornerShape(12.dp))
                                             .padding(6.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -1873,7 +1516,7 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                             )
                                             for ((r, c) in randomPoints) {
                                                 drawRect(
-                                                    color = Color(0xFF10B981).copy(alpha = 0.85f),
+                                                    color = Color(0xFF22D3EE).copy(alpha = 0.85f),
                                                     topLeft = Offset(c * cellW + 2f, r * cellH + 2f),
                                                     size = androidx.compose.ui.geometry.Size(cellW - 4f, cellH - 4f)
                                                 )
@@ -1890,15 +1533,15 @@ fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
                                             style = MaterialTheme.typography.labelSmall.copy(
                                                 fontWeight = FontWeight.Bold,
                                                 letterSpacing = 1.sp,
-                                                fontFamily = FontFamily.Monospace,
+                                                fontFamily = VazirmatnFontFamily,
                                                 fontSize = 9.sp
                                             ),
-                                            color = Color(0xFF10B981)
+                                            color = Color(0xFF22D3EE)
                                         )
                                         Text(
                                             text = "STATUS: VERIFIED SECURE",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 8.sp, fontWeight = FontWeight.Bold),
-                                            color = Color(0xFF10B981)
+                                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = VazirmatnFontFamily, fontSize = 8.sp, fontWeight = FontWeight.Bold),
+                                            color = Color(0xFF22D3EE)
                                         )
                                     }
                                 }
@@ -2112,7 +1755,7 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .padding(top = 96.dp, bottom = 100.dp),
+                .padding(horizontal = 14.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -2141,81 +1784,86 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                 }
             }
 
-            // Language & Theme Setup (frosted capsule style card)
+            // Language & Theme Setup (switch-based toggles)
             GlassyCard {
-                Text(
-                    text = Localization.get("language", lang),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                // Language switch
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        onClick = { viewModel.selectLanguage(AppLanguage.FA) },
-                        modifier = Modifier.weight(1f).height(40.dp).testTag("lang_fa_btn"),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (lang == AppLanguage.FA) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            contentColor = if (lang == AppLanguage.FA) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    Column {
+                        Text(
+                            text = Localization.get("language", lang),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
-                    ) {
-                        Text("فارسی (Persian)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
-                    Button(
-                        onClick = { viewModel.selectLanguage(AppLanguage.EN) },
-                        modifier = Modifier.weight(1f).height(40.dp).testTag("lang_en_btn"),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (lang == AppLanguage.EN) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            contentColor = if (lang == AppLanguage.EN) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                        Text(
+                            text = if (lang == AppLanguage.FA) "فارسی" else "English",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
-                    ) {
-                        Text("English", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
+                    Switch(
+                        checked = lang == AppLanguage.EN,
+                        onCheckedChange = { checked ->
+                            viewModel.selectLanguage(if (checked) AppLanguage.EN else AppLanguage.FA)
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = if (theme == AppTheme.PRISM_DARK) Color.Gray else Color.White,
+                            uncheckedTrackColor = if (theme == AppTheme.PRISM_DARK) Color(0xFF2D3A5C) else Color(0xFFCBD5E1)
+                        )
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = Localization.get("theme", lang),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                // 2 Theme style grids (Horizontal: Dark | Light)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Button(
-                        onClick = { viewModel.selectTheme(AppTheme.PRISM_DARK) },
-                        modifier = Modifier.weight(1f).height(38.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (theme == AppTheme.PRISM_DARK) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            contentColor = if (theme == AppTheme.PRISM_DARK) Color.White else MaterialTheme.colorScheme.onSurface
+                // Theme switch
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = Localization.get("theme", lang),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
-                    ) {
-                        Text(Localization.get("prism_dark", lang), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Button(
-                        onClick = { viewModel.selectTheme(AppTheme.PRISM_LIGHT) },
-                        modifier = Modifier.weight(1f).height(38.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (theme == AppTheme.PRISM_LIGHT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            contentColor = if (theme == AppTheme.PRISM_LIGHT) Color.White else MaterialTheme.colorScheme.onSurface
+                        Text(
+                            text = if (theme == AppTheme.PRISM_DARK) Localization.get("prism_dark", lang) else Localization.get("prism_light", lang),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
-                    ) {
-                        Text(Localization.get("prism_light", lang), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
+                    Switch(
+                        checked = theme == AppTheme.PRISM_LIGHT,
+                        onCheckedChange = { checked ->
+                            viewModel.selectTheme(if (checked) AppTheme.PRISM_LIGHT else AppTheme.PRISM_DARK)
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = if (theme == AppTheme.PRISM_DARK) Color.Gray else Color.White,
+                            uncheckedTrackColor = if (theme == AppTheme.PRISM_DARK) Color(0xFF2D3A5C) else Color(0xFFCBD5E1)
+                        )
+                    )
                 }
             }
 
-            // Vibration & Alert configurations (Vibrate on complete/warnings, and Notifications switch toggles)
+            // Vibration & Alert configurations
             Column {
                 Text(
                     text = Localization.get("alert_settings", lang),
@@ -2329,7 +1977,7 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                             .height(44.dp),
                         shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                             contentColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
@@ -2406,14 +2054,14 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(
                                             if (portConfig.isEnabled) {
-                                                if (theme == AppTheme.PRISM_LIGHT) MaterialTheme.colorScheme.primary.copy(alpha = 0.85f) else Color(0xFF0F172A).copy(alpha = 0.8f)
+                                                if (theme == AppTheme.PRISM_LIGHT) Color(0xFF2563EB).copy(alpha = 0.85f) else Color(0xFF1A1A2E).copy(alpha = 0.8f)
                                             } else {
-                                                if (theme == AppTheme.PRISM_LIGHT) Color(0xFFE2E8F0) else Color.Black.copy(alpha = 0.4f)
+                                                if (theme == AppTheme.PRISM_LIGHT) Color(0xFFE2E8F0) else Color(0xFF0A0E1A).copy(alpha = 0.6f)
                                             }
                                         )
                                         .border(
                                             width = if (portConfig.isEnabled) 1.dp else 1.5.dp,
-                                            color = if (portConfig.isEnabled) MaterialTheme.colorScheme.primary else (if (theme == AppTheme.PRISM_LIGHT) Color(0xFF94A3B8) else Color.White.copy(alpha = 0.2f)),
+                                            color = if (portConfig.isEnabled) MaterialTheme.colorScheme.primary else (if (theme == AppTheme.PRISM_LIGHT) Color(0xFF94A3B8) else Color.White.copy(alpha = 0.15f)),
                                             shape = RoundedCornerShape(24.dp)
                                         )
                                         .clickable { viewModel.togglePortConfig(portConfig) }
@@ -2429,7 +2077,7 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                             text = portConfig.port.toString(),
                                             style = MaterialTheme.typography.titleMedium.copy(
                                                 fontWeight = FontWeight.Black,
-                                                fontFamily = FontFamily.Monospace
+                                                fontFamily = VazirmatnFontFamily
                                             ),
                                             color = if (portConfig.isEnabled) Color.White else (if (theme == AppTheme.PRISM_LIGHT) Color(0xFF334155) else Color.Gray)
                                         )
@@ -2437,7 +2085,7 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                             modifier = Modifier
                                                 .size(8.dp)
                                                 .clip(CircleShape)
-                                                .background(if (portConfig.isEnabled) (if (theme == AppTheme.PRISM_LIGHT) Color.White else MaterialTheme.colorScheme.primary) else Color.Gray.copy(alpha = 0.5f))
+                                                .background(if (portConfig.isEnabled) (if (theme == AppTheme.PRISM_LIGHT) Color.White else MaterialTheme.colorScheme.primary) else Color.Gray.copy(alpha = 0.3f))
                                         )
                                     }
                                 }
@@ -2452,13 +2100,13 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
 
             // IP Sources list Section (individual cards as requested/shown in screenshots 1 & 3)
             Column {
-                Text(
-                    text = Localization.get("ip_sources", lang),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                    Text(
+                        text = Localization.get("ip_sources", lang),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -2470,11 +2118,11 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                 .clickable { viewModel.toggleIpSource(source) },
                             shape = RoundedCornerShape(22.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (theme == AppTheme.PRISM_LIGHT) Color.White else Color(0xFF0F172A).copy(alpha = 0.6f)
+                                containerColor = if (theme == AppTheme.PRISM_LIGHT) Color.White else Color(0xFF151B2D).copy(alpha = 0.6f)
                             ),
                             border = BorderStroke(
                                 width = 1.dp,
-                                color = if (source.isEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f)
+                                color = if (source.isEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.05f)
                             )
                         ) {
                             Row(
@@ -2494,8 +2142,8 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                         colors = SwitchDefaults.colors(
                                             checkedThumbColor = Color.White,
                                             checkedTrackColor = MaterialTheme.colorScheme.primary,
-                                            uncheckedThumbColor = Color.Gray,
-                                            uncheckedTrackColor = Color.DarkGray.copy(alpha = 0.5f)
+                                            uncheckedThumbColor = if (theme == AppTheme.PRISM_DARK) Color.Gray else Color.White,
+                                            uncheckedTrackColor = if (theme == AppTheme.PRISM_DARK) Color(0xFF2D3A5C) else Color(0xFFCBD5E1)
                                         )
                                     )
                                     
@@ -2632,7 +2280,7 @@ fun LogsScreen(viewModel: NovaRadarViewModel) {
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                        contentColor = MaterialTheme.colorScheme.primary
+                        contentColor = Color(0xFF22D3EE)
                     ),
                     modifier = Modifier.height(36.dp)
                 ) {
@@ -2649,7 +2297,7 @@ fun LogsScreen(viewModel: NovaRadarViewModel) {
                     .heightIn(max = 480.dp) // Prevent terminal overflow under menu
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color(0xFF030712)) // Dark Terminal Background
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                    .border(1.dp, Color(0xFF22D3EE).copy(alpha = 0.3f), RoundedCornerShape(24.dp))
                     .padding(14.dp)
             ) {
                 if (logs.isEmpty()) {
@@ -2680,9 +2328,9 @@ fun LogsScreen(viewModel: NovaRadarViewModel) {
                         ) {
                             items(logs) { log ->
                                 val textColor = when {
-                                    log.contains("✔ ALIVE") -> Color(0xFF10B981) // Green
+                                    log.contains("✔ ALIVE") -> Color(0xFF22D3EE) // Green
                                     log.contains("✖ DEAD") -> Color(0xFFEF4444).copy(alpha = 0.5f) // Faded Red
-                                    log.contains("======") -> MaterialTheme.colorScheme.primary // Tech headings
+                                    log.contains("======") -> Color(0xFF22D3EE) // Tech headings
                                     else -> Color(0xFF9CA3AF) // Grey default
                                 }
                                 Text(
@@ -2712,7 +2360,7 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .padding(top = 96.dp, bottom = 100.dp),
+                .padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -2753,7 +2401,7 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 GlassyCard(
-                    borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                    borderColor = Color(0xFF22D3EE).copy(alpha = 0.35f)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -2766,7 +2414,7 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
                             modifier = Modifier
                                 .size(84.dp)
                                 .clip(CircleShape)
-                                .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                                .border(1.5.dp, Color(0xFF22D3EE), CircleShape),
                             contentScale = ContentScale.Fit
                         )
 
@@ -2794,25 +2442,11 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                         ) {
-                            // Nova Proxy
+                            // GitHub link
                             AboutLinkItem(
-                                title = "Nova Proxy",
-                                subtitle = "https://github.com/IRNova/NovaProxy",
-                                icon = Icons.Outlined.Cloud,
-                                onClick = {
-                                    try {
-                                        uriHandler.openUri("https://github.com/IRNova/NovaProxy")
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
-                            )
-
-                            // Nova Radar
-                            AboutLinkItem(
-                                title = "Nova Radar",
+                                title = "GitHub",
                                 subtitle = "https://github.com/IRNova/NovaRadar",
-                                icon = Icons.Outlined.Security,
+                                icon = Icons.Outlined.Code,
                                 onClick = {
                                     try {
                                         uriHandler.openUri("https://github.com/IRNova/NovaRadar")
@@ -2822,9 +2456,23 @@ fun AboutScreen(viewModel: NovaRadarViewModel) {
                                 }
                             )
 
-                            // Install Wizard
+                            // Telegram link
                             AboutLinkItem(
-                                title = "Install Wizard",
+                                title = "Telegram Channel",
+                                subtitle = "https://t.me/irnova_proxy",
+                                icon = Icons.Outlined.Send,
+                                onClick = {
+                                    try {
+                                        uriHandler.openUri("https://t.me/irnova_proxy")
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+                            )
+
+                            // Wizard link
+                            AboutLinkItem(
+                                title = "Wizard Website",
                                 subtitle = "https://novaproxy.online/install",
                                 icon = Icons.Outlined.Language,
                                 onClick = {
@@ -2872,7 +2520,7 @@ fun CrumpledGlitchText(
         Text(
             text = text,
             style = style.copy(
-                fontFamily = FontFamily.Monospace,
+                fontFamily = VazirmatnFontFamily,
                 letterSpacing = 2.sp,
                 brush = novaBrush,
                 shadow = Shadow(
@@ -2886,7 +2534,7 @@ fun CrumpledGlitchText(
         Text(
             text = text,
             style = style.copy(
-                fontFamily = FontFamily.Monospace,
+                fontFamily = VazirmatnFontFamily,
                 letterSpacing = 2.sp,
                 shadow = Shadow(
                     color = highlightsShadow,
@@ -2921,13 +2569,13 @@ fun AboutLinkItem(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                .background(Color(0xFF22D3EE).copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = Color(0xFF22D3EE),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -2949,3 +2597,8 @@ fun AboutLinkItem(
         }
     }
 }
+
+
+
+
+
