@@ -183,7 +183,8 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = 14.dp)
+                .padding(bottom = 88.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(96.dp))
