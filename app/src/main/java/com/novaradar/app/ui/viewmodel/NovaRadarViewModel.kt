@@ -30,6 +30,7 @@ import java.net.Socket
 import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
+import kotlin.math.minOf
 import kotlin.random.Random
 
 enum class AppTheme {
@@ -655,35 +656,40 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         Toast.makeText(context, if (_selectedLanguage.value == AppLanguage.FA) "کپی شد: $config" else "Copied: $config", Toast.LENGTH_SHORT).show()
     }
 
-    private fun generateIpsForSubnet(cidr: String, maxCount: Int): List<String> {
+    private fun generateIpsForSubnet(cidrString: String, maxCount: Int): List<String> {
+        val cidrs = cidrString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        if (cidrs.isEmpty()) return emptyList()
         val ipList = mutableListOf<String>()
-        try {
-            val parts = cidr.split("/")
-            if (parts.size != 2) return emptyList()
-
-            val baseIp = parts[0]
-            val mask = parts[1].toInt()
-
-            val ipLong = ipToLong(baseIp)
-            val hostCount = (1L shl (32 - mask))
-
-            // generate candidates
-            if (hostCount <= maxCount) {
-                for (i in 1 until hostCount.toInt() - 1) {
-                    ipList.add(longToIp(ipLong + i))
-                }
-            } else {
-                // sample subset randomly
-                val tried = mutableSetOf<Long>()
-                while (ipList.size < maxCount && tried.size < hostCount) {
-                    val offset = Random.nextLong(1, hostCount - 1)
-                    if (tried.add(offset)) {
-                        ipList.add(longToIp(ipLong + offset))
+        var remaining = maxCount
+        for ((idx, cidr) in cidrs.withIndex()) {
+            val budget = remaining / (cidrs.size - idx)
+            if (budget <= 0) continue
+            try {
+                val parts = cidr.split("/")
+                if (parts.size != 2) continue
+                val baseIp = parts[0]
+                val mask = parts[1].toInt()
+                val ipLong = ipToLong(baseIp)
+                val hostCount = (1L shl (32 - mask))
+                if (hostCount <= budget + 2) {
+                    val limit = minOf(hostCount.toInt() - 1, budget + 1)
+                    for (i in 1 until limit) {
+                        ipList.add(longToIp(ipLong + i))
+                    }
+                } else {
+                    val tried = mutableSetOf<Long>()
+                    var count = 0
+                    while (count < budget && tried.size < hostCount) {
+                        val offset = Random.nextLong(1, hostCount - 1)
+                        if (tried.add(offset)) {
+                            ipList.add(longToIp(ipLong + offset))
+                            count++
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
         return ipList
     }

@@ -2157,8 +2157,10 @@ fun SettingsScreen(viewModel: NovaRadarViewModel) {
                                             color = if (source.isEnabled) MaterialTheme.colorScheme.onSurface else Color.Gray
                                         )
                                         if (source.cidr.isNotEmpty()) {
+                                            val count = source.cidr.split(",").size
+                                            val label = if (count == 1) source.cidr else if (lang == AppLanguage.FA) "${count} رنج" else "${count} CIDR ranges"
                                             Text(
-                                                text = source.cidr,
+                                                text = label,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = Color.Gray
                                             )

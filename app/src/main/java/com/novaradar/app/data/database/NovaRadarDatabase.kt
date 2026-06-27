@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [IpSource::class, PortConfig::class, ScanHistory::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class NovaRadarDatabase : RoomDatabase() {
@@ -70,24 +70,42 @@ abstract class NovaRadarDatabase : RoomDatabase() {
             val portDao = db.portConfigDao()
             defaultPorts.forEach { portDao.insertPortConfig(it) }
 
+            val cloudflareCidrs = listOf(
+                "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+                "104.16.0.0/13", "104.24.0.0/14",
+                "108.162.192.0/18", "131.0.72.0/22", "141.101.64.0/18",
+                "162.158.0.0/15", "172.64.0.0/13", "173.245.48.0/20",
+                "188.114.96.0/20", "190.93.240.0/20", "197.234.240.0/22",
+                "198.41.128.0/17",
+                "5.226.176.0/21", "45.67.215.0/24", "45.85.118.0/23",
+                "45.95.240.0/22", "63.141.128.0/24", "64.68.192.0/20",
+                "66.81.240.0/20", "69.84.182.0/23", "89.116.250.0/24",
+                "94.140.0.0/24", "95.179.154.0/23", "104.28.0.0/14",
+                "108.61.0.0/16", "154.84.175.0/24", "159.246.0.0/16",
+                "160.153.0.0/16", "185.109.21.0/24", "185.62.140.0/22",
+                "188.42.0.0/16", "191.101.128.0/17", "192.200.160.0/24",
+                "192.0.48.0/21", "192.0.56.0/23", "192.0.60.0/23",
+                "193.9.49.0/24", "198.62.62.0/23", "203.22.223.0/24",
+                "203.23.104.0/24", "203.23.106.0/24", "208.103.161.0/24"
+            )
+
+            val akamaiCidrs = listOf(
+                "2.16.0.0/13", "23.0.0.0/12", "23.32.0.0/11",
+                "23.64.0.0/14", "23.72.0.0/13", "23.192.0.0/11"
+            )
+
+            val vercelCidrs = listOf(
+                "64.29.17.0/24", "64.239.109.0/24", "64.239.123.0/24",
+                "66.33.60.0/24", "76.76.21.0/24", "143.13.0.0/16",
+                "155.121.0.0/16", "198.169.1.0/24", "198.169.2.0/24",
+                "216.150.1.0/24", "216.150.16.0/24", "216.198.79.0/24",
+                "216.230.84.0/24", "216.230.86.0/24"
+            )
+
             val defaultSources = listOf(
-                IpSource(1, "Cloudflare Official 1", "کلودفلر رسمی ۱", "103.21.244.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", true),
-                IpSource(2, "Cloudflare Official 2", "کلودفلر رسمی ۲", "103.22.200.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", true),
-                IpSource(3, "Cloudflare Official 3", "کلودفلر رسمی ۳", "103.31.4.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(4, "Cloudflare Official 4", "کلودفلر رسمی ۴", "104.16.0.0/13", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(5, "Cloudflare Official 5", "کلودفلر رسمی ۵", "104.24.0.0/14", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(6, "Cloudflare Official 6", "کلودفلر رسمی ۶", "108.162.192.0/18", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(7, "Cloudflare Official 7", "کلودفلر رسمی ۷", "131.0.72.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(8, "Cloudflare Official 8", "کلودفلر رسمی ۸", "141.101.64.0/18", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(9, "Cloudflare Official 9", "کلودفلر رسمی ۹", "162.158.0.0/15", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(10, "Cloudflare Official 10", "کلودفلر رسمی ۱۰", "172.64.0.0/13", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(11, "Cloudflare Official 11", "کلودفلر رسمی ۱۱", "173.245.48.0/20", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(12, "Cloudflare Official 12", "کلودفلر رسمی ۱۲", "188.114.96.0/20", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(13, "Cloudflare Official 13", "کلودفلر رسمی ۱۳", "190.93.240.0/20", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(14, "Cloudflare Official 14", "کلودفلر رسمی ۱۴", "197.234.240.0/22", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(15, "Cloudflare Official 15", "کلودفلر رسمی ۱۵", "198.41.128.0/17", "https://www.cloudflare.com/ips-v4/", "cidr", false),
-                IpSource(16, "Foreign Domains", "دامنه‌های خارجی", "", "https://raw.githubusercontent.com/Blacknuno/Nova-Proxy/refs/heads/main/dominos.text", "domain", false),
-                IpSource(17, "Iranian Domains", "دامنه‌های ایرانی", "", "https://raw.githubusercontent.com/Blacknuno/Nova-Proxy/refs/heads/main/IRdominos.text", "domain", false)
+                IpSource(1, "Cloudflare", "کلودفلر", cloudflareCidrs.joinToString(","), "", "cidr", true),
+                IpSource(2, "Akamai", "آکامای", akamaiCidrs.joinToString(","), "", "cidr", false),
+                IpSource(3, "Vercel", "ورسل", vercelCidrs.joinToString(","), "", "cidr", false)
             )
             val ipSourceDao = db.ipSourceDao()
             defaultSources.forEach { ipSourceDao.insertIpSource(it) }
