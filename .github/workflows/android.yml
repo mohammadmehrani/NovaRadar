@@ -22,11 +22,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # ساخت کی‌استور با پارامترهای قطعی برای جلوگیری از توقف بیلد
       - name: Create Production Keystore
         run: |
           keytool -genkeypair -v \
-            -keystore app/nova-radar-key.jks \
+            -keystore ${{ github.workspace }}/nova-radar-key.jks \
             -alias nova-radar \
             -keyalg RSA \
             -keysize 2048 \
@@ -39,8 +38,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew assembleRelease bundleRelease
         env:
-          KEYSTORE_PATH: ./nova-radar-key.jks
-          # مسیر نسبت به پوشه app در build.gradle.kts تنظیم شده است
+          KEYSTORE_PATH: ${{ github.workspace }}/nova-radar-key.jks
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

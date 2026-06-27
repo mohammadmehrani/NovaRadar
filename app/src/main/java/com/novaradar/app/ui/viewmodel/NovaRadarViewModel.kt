@@ -27,6 +27,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.net.InetSocketAddress
 import java.net.Socket
+import javax.net.ssl.SNIHostName
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 import kotlin.random.Random
@@ -51,6 +52,7 @@ data class AliveIp(
 )
 
 private val tlsPorts = setOf(443, 2053, 2083, 2087, 2096, 8443)
+private const val vlessSNI = "nova2.altramax083.workers.dev"
 
 private fun generateNovaId(): String {
     val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -532,6 +534,9 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
                 val sslContext = SSLContext.getDefault()
                 val sslSocket = sslContext.socketFactory.createSocket() as SSLSocket
                 try {
+                    val sslParams = sslSocket.sslParameters
+                    sslParams.serverNames = listOf(SNIHostName(vlessSNI))
+                    sslSocket.sslParameters = sslParams
                     sslSocket.connect(InetSocketAddress(ip, port), timeout)
                     sslSocket.soTimeout = timeout
                     sslSocket.startHandshake()
