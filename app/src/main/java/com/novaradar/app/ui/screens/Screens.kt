@@ -1678,18 +1678,19 @@ private suspend fun executeCloudflareDeployment(
             // 2. Transmit / Upload JavaScript Worker Source
             onStatus(if (isFa) "⚙️ کامپایل هوشمند نسخه بهینه سورس کد نوا پروکسی..." else "⚙️ Structuring highly optimized proxy worker source code...")
             val workerJsCode = """
-                // Nova Proxy Serverless Route Worker (Optimized client deployment v1.0.0)
+                // Nova Wizard Official Worker v1.0.0 (VLESS + WebSocket)
+                import { connect } from 'cloudflare:sockets';
                 export default {
                   async fetch(request, env) {
                     const url = new URL(request.url);
-                    if (url.pathname === '/sub' || url.pathname === '/feed') {
-                      const vlessUrl = "vless://$uuid@" + url.host + ":443?encryption=none&security=tls&sni=" + url.host + "&type=ws&host=" + url.host + "&path=%2F%3Fed%3D2048#Nova%20Proxy";
-                      return new Response(btoa(vlessUrl), {
-                        headers: { "content-type": "text/plain; charset=utf-8" }
-                      });
+                    const upgradeHeader = request.headers.get('Upgrade');
+                    if (upgradeHeader === 'websocket') {
+                        // VLESS over WS Logic matching Nova-Wizard
+                        return vlessOverWSHandler(request);
                     }
-                    return new Response("Nova Proxy Worker is Active. Status: Healthy. UUID Bound: Configured.", {
-                      headers: { "content-type": "text/html; charset=utf-8" }
+                    const vlessConfig = "vless://$uuid@" + url.host + ":443?encryption=none&security=tls&sni=" + url.host + "&type=ws&host=" + url.host + "&path=%2F%3Fed%3D2048#NovaRadar-Wizard";
+                    return new Response(vlessConfig, {
+                      headers: { "content-type": "text/plain; charset=utf-8" }
                     });
                   }
                 };

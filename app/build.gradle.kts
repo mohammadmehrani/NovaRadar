@@ -1,7 +1,7 @@
 import java.net.URL
 import java.net.HttpURLConnection
 
-val appVersionName = "1.5.0"
+val appVersionName = "1.0.0"
 
 plugins {
   alias(libs.plugins.android.application)

@@ -299,7 +299,15 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                                                 )
                                                 .border(2.dp, if (isDark) Color.White.copy(alpha = 0.15f) else Color(0xFF2563EB).copy(alpha = 0.2f), CircleShape)
                                                 .clickable {
-                                                    if (isScanning) viewModel.stopScan() else viewModel.startScan()
+                                                    if (isScanning) {
+                                                        viewModel.stopScan()
+                                                    } else {
+                                                        viewModel.startScan()
+                                                        // Auto-navigate to Radar screen (Index 2)
+                                                        coroutineScope.launch {
+                                                            pagerState.animateScrollToPage(2)
+                                                        }
+                                                    }
                                                 }
                                                 .testTag("nav_start_button"),
                                             contentAlignment = Alignment.Center

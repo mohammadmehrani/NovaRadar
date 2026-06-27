@@ -99,7 +99,7 @@ object Localization {
         "sec_sources" to "رنج‌های آی‌پی فعال",
         "about_title" to "Nova Radar",
         "about_sub" to "ساخته شده توسط گروه نوا پروکسی",
-        "about_version" to "نسخه نوا رادار v1.0.0",
+        "about_version" to "Nova Radar v1.0.0",
         "telegram_channel" to "کانال تلگرام نوا پروکسی",
         "github_repo" to "صفحه گیت‌هاب پروژه",
         "author_contact" to "آیدی سازنده",

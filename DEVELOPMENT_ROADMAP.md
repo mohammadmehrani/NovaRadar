@@ -18,7 +18,7 @@ This document records the development history, architecture decisions, and build
 
 | Version | Date | Key Changes |
 |---------|------|-------------|
-| 1.5.0   | 2026-06-27 | Redesigned scanner UI, floating nav button, live probe feed, version bump, clean build |
+| 1.0.0   | 2026-06-27 | Production Release: Final Radar UI, Wizard Fix, GitHub Actions |
 | 1.0.02  | 2026-06-25 | Quick/deep scan engine, 2-stage probe, Play Protect fixes |
 | 1.0.01  | 2026-06-24 | Initial Play Store-compatible build, Room DB, icon rebrand |
 
