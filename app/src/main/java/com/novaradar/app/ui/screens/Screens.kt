@@ -304,19 +304,21 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                 when (page) {
                     0 -> {
                         // DASHBOARD SUB-PAGE (IP input, radar, stat boxes, unique start/stop button)
-                        val targetIp = remember { mutableStateOf("") }
+                        val dashboardScrollState = rememberScrollState()
                         Column(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(dashboardScrollState),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Radar (Perfect Circle)
-                            Box(
+                            // Radar (Perfect Circle with adaptive size)
+                            BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1f)
-                                    .aspectRatio(1f) // Ensure it's a perfect square for CircleShape
+                                    .padding(horizontal = 4.dp)
+                                    .aspectRatio(1f)
                                     .clip(CircleShape)
-                                    .background(if (theme == AppTheme.PRISM_LIGHT) Color(0xFFF0FDF4) else Color(0xFF021708)) // Reverted to original background
+                                    .background(if (theme == AppTheme.PRISM_LIGHT) Color(0xFFF0FDF4) else Color(0xFF021708)) 
                                     .border(2.dp, Color(0xFF34D399).copy(alpha = if (theme == AppTheme.PRISM_LIGHT) 0.6f else 0.8f), CircleShape)
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
@@ -330,22 +332,22 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                                     .testTag("radar_canvas_container"),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                val canvasSize = minOf(maxWidth, maxHeight)
+                                Canvas(modifier = Modifier.size(canvasSize)) {
                                     val radius = size.minDimension / 2f
                                     val center = Offset(size.width / 2f, size.height / 2f)
                                     
-                                    // Static Circles (Inside the border - slightly smaller to avoid bleeding)
+                                    // Static Circles (Inside the border)
                                     drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.25f), radius = radius * 0.35f, style = Stroke(width = 1.2f))
                                     drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.25f), radius = radius * 0.65f, style = Stroke(width = 1.2f))
                                     drawCircle(color = Color(0xFF00FF66).copy(alpha = 0.4f), radius = radius * 0.94f, style = Stroke(width = 1.8f))
                                     
-                                    // Crosshair lines (Clipped inside the border)
+                                    // Crosshair lines
                                     drawLine(color = Color(0xFF00FF66).copy(alpha = 0.2f), start = Offset(center.x - radius * 0.94f, center.y), end = Offset(center.x + radius * 0.94f, center.y), strokeWidth = 1f)
-                                    drawLine(color = Color(0xFF00FF66).copy(alpha = 0.2f), start = Offset(center.x, center.y - radius * 0.94f), end = Offset(center.x, center.y + radius * 0.94f), strokeWidth = 1f)
+                                    drawLine(color = Color(0xFF00FF66).copy(alpha = 0.2f), start = Offset(center.y, center.y - radius * 0.94f), end = Offset(center.x, center.y + radius * 0.94f), strokeWidth = 1f)
                                     
                                     val sweepAlphaMultiplier = if (isScanning) 1.0f else 0.15f
                                     
-                                    // Animated sweep line (Kept inside 0.94f radius)
                                     val angleRad = Math.toRadians(animatedAngle.toDouble())
                                     val endX = center.x + radius * 0.94f * cos(angleRad).toFloat()
                                     val endY = center.y + radius * 0.94f * sin(angleRad).toFloat()
@@ -354,14 +356,12 @@ fun RadarScreen(viewModel: NovaRadarViewModel) {
                                     drawIntoCanvas { canvas ->
                                         canvas.save()
                                         canvas.rotate(animatedAngle, center.x, center.y)
-                                        // Draw sweep gradient within the circle bounds
                                         drawCircle(brush = sweepBrush, radius = radius * 0.94f, alpha = sweepAlphaMultiplier)
                                         canvas.restore()
                                     }
                                     
                                     drawCircle(color = Color(0xFF00FF66), radius = 4.dp.toPx())
                                     
-                                    // Dots for Alive IPs (Kept within 0.85f of radius)
                                     allIps.take(8).forEachIndexed { index, alive ->
                                         val dotAngleRad = Math.toRadians(alive.angle.toDouble())
                                         val distPx = alive.normalizedDistance * radius * 0.85f

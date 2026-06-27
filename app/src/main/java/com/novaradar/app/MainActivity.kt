@@ -130,42 +130,40 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
             }
 
             // Top fade overlay: content fades as it scrolls under the header
-            if (pagerState.currentPage != 1) { // Apply to all except Settings
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(fadeHeight + 20.dp)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA),
-                                    (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.9f),
-                                    Color.Transparent
-                                )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight + 20.dp)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA),
+                                (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.95f),
+                                (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.7f),
+                                Color.Transparent
                             )
                         )
-                )
-            }
+                    )
+            )
 
             // Bottom fade overlay: content fades as it scrolls under the nav bar
-            if (pagerState.currentPage != 1) { // Apply to all except Settings
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(fadeHeight + 40.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.9f),
-                                    if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)
-                                )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(fadeHeight + 40.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.7f),
+                                (if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)).copy(alpha = 0.95f),
+                                if (isDark) Color(0xFF0A0E1A) else Color(0xFFF5F7FA)
                             )
                         )
-                )
-            }
+                    )
+            )
 
             // Glassmorphic Top Header
             Surface(
