@@ -22,17 +22,26 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease bundleRelease
+      # ایجاد یک Keystore موقت برای اینکه بیلد در محیط گیت‌هاب شکست نخورد
+      - name: Create Temporary Keystore
+        run: |
+          keytool -genkey -v -keystore nova-radar-key.jks -alias nova-radar -keyalg RSA -keysize 2048 -validity 10000 -storepass NovaRadar2026 -keypass NovaRadar2026 -dname "CN=NovaRadar, OU=Dev, O=Nova, L=World, S=World, C=US"
 
-      - name: Create Release
-        id: create_release
+      - name: Build Release APK & Bundle
+        run: ./gradlew assembleRelease bundleRelease
+        env:
+          KEYSTORE_PATH: ../nova-radar-key.jks
+          # این مسیر به روت پروژه اشاره می‌کند چون دستور در پوشه app اجرا می‌شود
+
+      - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
         env:
