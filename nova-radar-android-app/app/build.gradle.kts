@@ -29,9 +29,9 @@ android {
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/nova-radar-key.jks"
       storeFile = file(keystorePath)
-      storePassword = "NovaRadar2026"
+      storePassword = "123456"
       keyAlias = "nova-radar"
-      keyPassword = "NovaRadar2026"
+      keyPassword = "123456"
       enableV1Signing = false
       enableV2Signing = true
     }

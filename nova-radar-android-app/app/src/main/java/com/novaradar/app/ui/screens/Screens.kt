@@ -801,7 +801,7 @@ fun MeshBackgroundCard(
 
 // Page 1.5: EASY INSTALLER SCREEN (Onboarding configuration and client download wizard)
 @Composable
-fun EasyInstallerScreen(viewModel: NovaRadarViewModel) {
+private fun EasyInstallerScreenLegacy(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val theme by viewModel.selectedTheme.collectAsState()
     
@@ -1749,7 +1749,7 @@ private fun extractJsonValue(json: String, key: String): String {
     return match?.groupValues?.get(1) ?: ""
 }
 
-private suspend fun executeCloudflareDeployment(
+suspend fun executeCloudflareDeployment(
     token: String,
     workerName: String,
     uuid: String,
@@ -1892,7 +1892,7 @@ private suspend fun executeCloudflareDeployment(
 
 // Page 2: SETTINGS SCREEN (Ports & IP Sources)
 @Composable
-fun SettingsScreen(viewModel: NovaRadarViewModel) {
+private fun SettingsScreenLegacy(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val theme by viewModel.selectedTheme.collectAsState()
     val ports by viewModel.portConfigs.collectAsState()
@@ -2385,7 +2385,7 @@ fun FlowRow(
 
 // Page 3: IMPORT IP SCREEN - Import, Scan, Suffix IPs for Nova Proxy
 @Composable
-fun ImportScreen(viewModel: NovaRadarViewModel) {
+private fun ImportScreenLegacy(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val importOutput by viewModel.importOutput.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
@@ -2732,7 +2732,7 @@ fun ImportScreen(viewModel: NovaRadarViewModel) {
 }
 
 @Composable
-fun AboutScreen(viewModel: NovaRadarViewModel) {
+private fun AboutScreenLegacy(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val context = LocalContext.current
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
