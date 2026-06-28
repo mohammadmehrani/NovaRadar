@@ -1,10 +1,36 @@
+# v1.6.0 — نکات فنی
+
+## تغییرات این نسخه
+
+### ۱. صفحه جدید Import IP
+- جایگزین صفحه Logs در نویگیشن (تب سوم با آیکون `+`)
+- کاربر می‌تواند لیست `IP:port` را Paste کند
+- **۳ حالت پردازش**:
+  - **Suffix Only** — اضافه کردن سوفیکس `#Nova-XX` بدون اسکن
+  - **Scan** — اسکن آی‌پی‌های وارد شده و نمایش دیالوگ برای سوفیکس
+  - **Scan + Suffix** — اسکن و سوفیکس خودکار
+- خروجی قابل **Copy** و **Save to File** (در Downloads)
+- پشتیبانی کامل از زبان فارسی
+
+### ۲. انتقال لاگ به About Us
+- ترمینال لاگ از صفحه مجزا به انتهای صفحه About Us منتقل شد
+
+### ۳. تغییرات ViewModel
+- توابع جدید: `suffixOnly()`, `suffixForNovaProxy()`, `clearImportOutput()`, `saveImportOutputToFile()`, `copyImportOutput()`
+- `startScanWithImportedIps(autoSuffix)` — اسکن مستقیم آی‌پی‌های وارد شده
+
+## وضعیت بیلد
+- **ورژن**: `1.6.0`
+- **Code**: `5`
+- **APK**: `NovaRadar-v1.6.0-arm64-v8a-release.apk`
+
+---
+
 # v1.5.1 — نکات فنی
 
 ## علت ارور در نسخه‌های قبل
 - `minOf` یک تابع استاندارد Kotlin است که در برخی محیط‌های بیلد (مخصوصاً JDK 21 + Gradle 9.x) به درستی رزولوشن نمی‌شود و باعث `Unresolved reference` در زمان کامپایل می‌گردد.  
 **رفع**: جایگزین با `.coerceAtMost()` — تابع extension استاندارد Kotlin که نیاز به import ندارد و در همه نسخه‌ها کار می‌کند.
-
-## تغییرات این نسخه
 
 ### ۱. SNI سفارشی (TLS Handshake)
 - اضافه شدن `vlessSNI = "nova2.altramax083.workers.dev"` به `NovaRadarViewModel.kt`
@@ -33,11 +59,6 @@
 ### ۵. ارتقاء دیتابیس
 - نسخه دیتابیس: 3 → 4
 - `fallbackToDestructiveMigration()` — نصب جدید دیتابیس تمیز دارد، کاربران قبلی دیتابیسشان پاک می‌شود
-
-## وضعیت بیلد
-- **APK لوکال**: ✅ `NovaRadar-v1.5.1-arm64-v8a-release.apk`
-- **GitHub Actions**: در حال اجرا (گیتهاب در ایران فیلتر است — ممکن است نیاز به فیلترشکن داشته باشید)
-- **نصب**: APK ساید‌لود — هشدار Play Protect "Unknown app" طبیعی است (بدون امضای Play Console)
 
 ## نکات امنیتی
 - هیچ TrustManager سفارشی استفاده نشده — Play Protect "Harmful app" نمی‌دهد
