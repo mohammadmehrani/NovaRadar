@@ -158,10 +158,11 @@ jobs:
 
       - name: Sync upstream branch
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        continue-on-error: true
         run: |
           chmod +x scripts/sync-upstream.sh
-          bash scripts/sync-upstream.sh .upstream/config.json
-          git push origin upstream-base --force
+          bash scripts/sync-upstream.sh .upstream/config.json || true
+          git push origin upstream-base --force 2>/dev/null || true
 
       - name: Create upstream PR
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')

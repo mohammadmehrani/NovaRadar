@@ -92,7 +92,7 @@ for f in "${FILTERED[@]}"; do
         mkdir -p "$dir"
     fi
     if git checkout "$SOURCE_BRANCH" -- "$f" 2>/dev/null; then
-        ((COUNT++))
+        COUNT=$((COUNT+1))
     else
         echo "WARNING: Failed to copy $f" >&2
     fi
