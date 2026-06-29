@@ -20,4 +20,5 @@ debug.keystore
 *.apk
 *.jks
 *.keystore
-.idea/vcs.xml
+.idea/
+/build/reports/
