@@ -9,7 +9,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-upstream-pr:
+  prepare-and-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create/update upstream-pr branch with latest main
+      - name: Sync upstream branch (filter private files)
         run: |
-          git branch -f upstream-pr main
-          git push origin upstream-pr --force
+          chmod +x scripts/sync-upstream.sh
+          bash scripts/sync-upstream.sh .upstream/config.json
+
+      - name: Push upstream branch
+        run: |
+          git push origin upstream-base --force
 
       - name: Open or update PR to IRNova/NovaRadar
         env:
@@ -34,30 +38,31 @@ jobs:
           RELEASE_URL: ${{ github.event.release.html_url }}
         run: |
           PR_EXISTS=$(gh pr view 7 --repo IRNova/NovaRadar --json number 2>/dev/null || echo "")
+          BODY="## Nova Radar Android v${RELEASE_TAG#v}
+
+          Android port (Kotlin/Jetpack Compose) of IRNova/NovaRadar.
+
+          ### 📥 Download APKs
+          [Download v${RELEASE_TAG#v}](${RELEASE_URL})
+
+          ### Features
+          - Two-phase scan engine (TCP + TLS with custom SNI)
+          - HTTP ping verification
+          - 13 scan ports, 7 IP source groups
+          - Professional results page
+          - Dark/Light theme, Persian/English
+          - Config Builder (VLESS, Clash, V2Ray, Sing-Box)
+
+          ### Source
+          https://github.com/mohammadmehrani/NovaRadar"
+
           if [ -z "$PR_EXISTS" ]; then
             gh pr create \
               --repo IRNova/NovaRadar \
-              --head mohammadmehrani:NovaRadar:upstream-pr \
+              --head mohammadmehrani:NovaRadar:upstream-base \
               --base main \
               --title "Nova Radar Android v${RELEASE_TAG#v}" \
-              --body "## Nova Radar Android App — v${RELEASE_TAG#v}
-
-              Android port (Kotlin/Jetpack Compose) of IRNova/NovaRadar.
-
-              ### 📥 Download APKs
-              [Download v${RELEASE_TAG#v}](${RELEASE_URL})
-
-              ### Features
-              - Two-phase scan engine (TCP + TLS with custom SNI)
-              - HTTP ping verification
-              - 13 scan ports, 7 IP source groups
-              - Professional results page
-              - Dark/Light theme, Persian/English
-              - Config Builder (VLESS, Clash, V2Ray, Sing-Box)
-
-              ### Source
-              Full source available at: https://github.com/mohammadmehrani/NovaRadar
-              " && \
+              --body "$BODY" && \
             gh pr merge 7 --repo IRNova/NovaRadar --squash --auto 2>/dev/null || true
           else
             gh pr edit 7 --repo IRNova/NovaRadar \

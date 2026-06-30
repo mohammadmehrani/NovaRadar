@@ -1,0 +1,36 @@
+# Files to include in upstream PR
+# Glob patterns — one per line, # for comments
+# These are the "open source" files to send to IRNova/NovaRadar
+
+# Android app — all source code
+nova-radar-android-app/app/src/**
+
+# Android build configs
+nova-radar-android-app/app/build.gradle.kts
+nova-radar-android-app/app/proguard-rules.pro
+
+# Project-level build
+nova-radar-android-app/build.gradle.kts
+nova-radar-android-app/settings.gradle.kts
+nova-radar-android-app/gradle.properties
+nova-radar-android-app/.env.example
+
+# Gradle wrapper + version catalog
+nova-radar-android-app/gradle/**
+nova-radar-android-app/gradlew
+nova-radar-android-app/gradlew.bat
+
+# Build helpers
+nova-radar-android-app/build.ps1
+
+# Go scanner source (original upstream code)
+nova-radar-android-app/scanner/**
+
+# CI workflow (shared)
+.github/workflows/android.yml
+
+# Documentation
+README.md
+
+# Git config
+.gitignore

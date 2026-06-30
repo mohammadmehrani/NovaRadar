@@ -1,7 +1,7 @@
 import java.net.URL
 import java.net.HttpURLConnection
 
-val appVersionName = "1.0.0"
+val appVersionName = "1.4.0"
 
 plugins {
   alias(libs.plugins.android.application)
@@ -16,10 +16,10 @@ android {
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.novaradar.app"
+    applicationId = "com.novaproxy.scanner"
     minSdk = 24
     targetSdk = 35
-    versionCode = 1
+    versionCode = 2
     versionName = appVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -27,12 +27,12 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/nova-radar-key.jks"
+      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/nova-scanner-key.jks"
       storeFile = file(keystorePath)
-      storePassword = "NovaRadar2026"
-      keyAlias = "nova-radar"
-      keyPassword = "NovaRadar2026"
-      enableV1Signing = false
+      storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "Nova@2026!Secure"
+      keyAlias = System.getenv("KEY_ALIAS") ?: "nova-scanner"
+      keyPassword = System.getenv("KEY_PASSWORD") ?: "Nova@2026!Secure"
+      enableV1Signing = true
       enableV2Signing = true
     }
     create("tempRelease") {

@@ -78,7 +78,8 @@ object Localization {
         "import_copied" to "Copied!",
         "import_save_file" to "Save to File",
         "import_no_ips" to "No IPs imported yet",
-        "import_placeholder" to "e.g. 1.2.3.4:443\n5.6.7.8:8080\n192.168.1.1"
+        "import_placeholder" to "e.g. 1.2.3.4:443\n5.6.7.8:8080\n192.168.1.1",
+        "tab_client" to "Client"
     )
 
     private val persianDict = mapOf(
@@ -149,6 +150,7 @@ object Localization {
         "import_copied" to "کپی شد!",
         "import_save_file" to "ذخیره در فایل",
         "import_no_ips" to "هنوز آی‌پی‌ای وارد نشده",
-        "import_placeholder" to "مثال: 1.2.3.4:443\n5.6.7.8:8080\n192.168.1.1"
+        "import_placeholder" to "مثال: 1.2.3.4:443\n5.6.7.8:8080\n192.168.1.1",
+        "tab_client" to "کلاینت"
     )
 }

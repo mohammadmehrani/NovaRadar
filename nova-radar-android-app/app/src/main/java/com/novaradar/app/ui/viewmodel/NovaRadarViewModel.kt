@@ -39,6 +39,13 @@ enum class AppTheme {
     PRISM_LIGHT
 }
 
+enum class RadarScenario(val displayName: String, val description: String) {
+    QUICK("Quick Scan", "Ports 80/443, 64 threads"),
+    DEEP("Deep Scan", "All ports, 100 threads"),
+    SMART("Smart Scan", "Adaptive: quick then deep"),
+    CUSTOM("Custom", "User configured")
+}
+
 enum class AppLanguage {
     EN,
     FA
@@ -99,11 +106,20 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
     private val _recentProbes = MutableStateFlow<List<String>>(emptyList())
     val recentProbes: StateFlow<List<String>> = _recentProbes.asStateFlow()
 
+    // Radar scenario
+    private val _selectedScenario = MutableStateFlow(RadarScenario.QUICK)
+    val selectedScenario: StateFlow<RadarScenario> = _selectedScenario.asStateFlow()
+
+    fun selectScenario(scenario: RadarScenario) {
+        _selectedScenario.value = scenario
+        addToLogs("▸ Scenario changed to ${scenario.displayName}")
+    }
+
     // Config States (stored in memory or easily persistent)
     private val _selectedTheme = MutableStateFlow(AppTheme.PRISM_DARK)
     val selectedTheme: StateFlow<AppTheme> = _selectedTheme.asStateFlow()
 
-    private val _selectedLanguage = MutableStateFlow(AppLanguage.FA)  // Default to Farsi as requested
+    private val _selectedLanguage = MutableStateFlow(AppLanguage.EN)
     val selectedLanguage: StateFlow<AppLanguage> = _selectedLanguage.asStateFlow()
 
     // Alert & Vibration configurations
@@ -177,6 +193,36 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun getNetworkType(context: Context): String {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork = cm.activeNetwork ?: return "Unknown"
+            val caps = cm.getNetworkCapabilities(activeNetwork) ?: return "Unknown"
+            when {
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "WiFi"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                    val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
+                    when (tm?.dataNetworkType) {
+                        android.telephony.TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                        android.telephony.TelephonyManager.NETWORK_TYPE_LTE -> "4G"
+                        android.telephony.TelephonyManager.NETWORK_TYPE_HSPAP, android.telephony.TelephonyManager.NETWORK_TYPE_HSDPA -> "3G"
+                        else -> "Cellular"
+                    }
+                }
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "Ethernet"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> "Bluetooth"
+                else -> "Unknown"
+            }
+        } catch (e: Exception) { "Unknown" }
+    }
+
+    private val _lastScanTimestamp = MutableStateFlow(0L)
+    val lastScanTimestamp: StateFlow<Long> = _lastScanTimestamp.asStateFlow()
+
+    private fun updateLastScanTime() {
+        _lastScanTimestamp.value = System.currentTimeMillis()
+    }
+
     fun exportResultsToTxtFile(context: Context) {
         val list = _allAliveIps.value
         if (list.isEmpty()) {
@@ -226,9 +272,14 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
     private val _speedResults = MutableStateFlow<MutableMap<String, String>>(mutableMapOf())
     val speedResults: StateFlow<Map<String, String>> = _speedResults.asStateFlow()
 
+    private val _runningSpeedTests = MutableStateFlow<Set<String>>(emptySet())
+    val runningSpeedTests: StateFlow<Set<String>> = _runningSpeedTests.asStateFlow()
+
     fun runSpeedTest(ip: String, port: Int) {
         val key = "$ip:$port"
+        if (key in _runningSpeedTests.value) return
         _speedResults.value = _speedResults.value.toMutableMap().apply { put(key, "⏳") }
+        _runningSpeedTests.value = _runningSpeedTests.value + key
         viewModelScope.launch(Dispatchers.IO) {
             var totalTime = 0L
             var successes = 0
@@ -250,6 +301,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
             } else 0.0
             val label = if (speed > 0) "%.1f MB/s".format(speed) else "❌"
             _speedResults.value = _speedResults.value.toMutableMap().apply { put(key, label) }
+            _runningSpeedTests.value = _runningSpeedTests.value - key
         }
     }
 
@@ -438,6 +490,144 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         Toast.makeText(context, if (_selectedLanguage.value == AppLanguage.FA) "خروجی کپی شد!" else "Output copied!", Toast.LENGTH_SHORT).show()
     }
 
+    // Desktop mode
+    private val _desktopMode = MutableStateFlow(false)
+    val desktopMode: StateFlow<Boolean> = _desktopMode.asStateFlow()
+
+    fun toggleDesktopMode() {
+        _desktopMode.value = !_desktopMode.value
+    }
+
+    // Network type manual override
+    private val _networkTypeOverride = MutableStateFlow("")
+    val networkTypeOverride: StateFlow<String> = _networkTypeOverride.asStateFlow()
+
+    fun setNetworkTypeOverride(type: String) {
+        _networkTypeOverride.value = if (_networkTypeOverride.value == type) "" else type
+    }
+
+    // Config builder state
+    private val _cfgUuid = MutableStateFlow("")
+    val cfgUuid: StateFlow<String> = _cfgUuid.asStateFlow()
+    fun setCfgUuid(v: String) { _cfgUuid.value = v }
+    fun generateUuid(): String {
+        val uuid = java.util.UUID.randomUUID().toString()
+        _cfgUuid.value = uuid
+        return uuid
+    }
+
+    private val _cfgSni = MutableStateFlow("nova2.altramax083.workers.dev")
+    val cfgSni: StateFlow<String> = _cfgSni.asStateFlow()
+    fun setCfgSni(v: String) { _cfgSni.value = v }
+
+    private val _cfgNetwork = MutableStateFlow("ws")
+    val cfgNetwork: StateFlow<String> = _cfgNetwork.asStateFlow()
+    fun setCfgNetwork(v: String) { _cfgNetwork.value = v }
+
+    private val _cfgSecurity = MutableStateFlow("tls")
+    val cfgSecurity: StateFlow<String> = _cfgSecurity.asStateFlow()
+    fun setCfgSecurity(v: String) { _cfgSecurity.value = v }
+
+    private val _cfgPath = MutableStateFlow("/")
+    val cfgPath: StateFlow<String> = _cfgPath.asStateFlow()
+    fun setCfgPath(v: String) { _cfgPath.value = v }
+
+    private val _cfgOutput = MutableStateFlow("")
+    val cfgOutput: StateFlow<String> = _cfgOutput.asStateFlow()
+
+    fun buildConfig(tab: String) {
+        val list = _allAliveIps.value
+        if (list.isEmpty()) { _cfgOutput.value = "No IPs to build config for."; return }
+        val uuid = _cfgUuid.value.ifEmpty { "00000000-0000-0000-0000-000000000000" }
+        val sni = _cfgSni.value.ifEmpty { "cloudflare.com" }
+        val network = _cfgNetwork.value
+        val security = _cfgSecurity.value
+        val path = _cfgPath.value.ifEmpty { "/" }
+
+        val output = when (tab) {
+            "vless" -> list.joinToString("\n") { "vless://$uuid@${it.ip}:${it.port}?encryption=none&security=$security&sni=$sni&type=$network&path=${java.net.URLEncoder.encode(path, "UTF-8")}#CF-${it.novaId}" }
+            "vmess" -> list.joinToString("\n") { ip ->
+                val obj = org.json.JSONObject().apply {
+                    put("v", "2"); put("ps", "CF-${ip.novaId}")
+                    put("add", ip.ip); put("port", ip.port.toString())
+                    put("id", uuid); put("aid", "0"); put("scy", "auto")
+                    put("net", network); put("type", "none"); put("host", sni)
+                    put("path", path); put("tls", security); put("sni", sni)
+                }
+                "vmess://${android.util.Base64.encodeToString(obj.toString().toByteArray(), android.util.Base64.NO_WRAP)}"
+            }
+            "clash" -> {
+                val proxies = list.joinToString("\n") {
+                    "  - name: CF-${it.novaId}\n" +
+                    "    type: vless\n    server: ${it.ip}\n    port: ${it.port}\n" +
+                    "    uuid: $uuid\n    tls: ${security == "tls"}\n    servername: $sni\n" +
+                    "    network: $network\n    ws-opts:\n      path: $path\n      headers:\n        Host: $sni"
+                }
+                val names = list.joinToString("\n      - ") { "CF-${it.novaId}" }
+                "proxies:\n$proxies\n\nproxy-groups:\n  - name: \"Auto\"\n    type: url-test\n    proxies:\n      - $names\n    url: http://www.gstatic.com/generate_204\n    interval: 300\n\nrules:\n  - GEOIP,IR,DIRECT\n  - MATCH,Auto"
+            }
+            "singbox" -> {
+                val outboundsArr = org.json.JSONArray()
+                list.forEach {
+                    val o = org.json.JSONObject()
+                    o.put("type", "vless"); o.put("tag", "cf-${it.novaId}")
+                    o.put("server", it.ip); o.put("server_port", it.port)
+                    o.put("uuid", uuid)
+                    val tls = org.json.JSONObject(); tls.put("enabled", security == "tls"); tls.put("server_name", sni)
+                    o.put("tls", tls)
+                    val trans = org.json.JSONObject(); trans.put("type", network); trans.put("path", path)
+                    o.put("transport", trans)
+                    outboundsArr.put(o)
+                }
+                val auto = org.json.JSONObject()
+                auto.put("type", "urltest"); auto.put("tag", "auto")
+                val tags = org.json.JSONArray()
+                list.forEach { tags.put("cf-${it.novaId}") }
+                auto.put("outbounds", tags); auto.put("url", "http://www.gstatic.com/generate_204"); auto.put("interval", "5m")
+                outboundsArr.put(auto)
+                val root = org.json.JSONObject()
+                val inbound = org.json.JSONObject()
+                inbound.put("type", "socks"); inbound.put("tag", "socks-in")
+                inbound.put("listen", "127.0.0.1"); inbound.put("listen_port", 2080)
+                root.put("inbounds", org.json.JSONArray().put(inbound))
+                root.put("outbounds", outboundsArr)
+                root.toString(2)
+            }
+            else -> ""
+        }
+        _cfgOutput.value = output
+    }
+
+    fun copyCfgOutput(context: Context) {
+        val text = _cfgOutput.value
+        if (text.isEmpty()) return
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("NovaRadarConfig", text))
+        Toast.makeText(context, "Config copied to clipboard!", Toast.LENGTH_SHORT).show()
+    }
+
+    fun saveCfgToFile(context: Context, filename: String) {
+        val text = _cfgOutput.value
+        if (text.isEmpty()) return
+        try {
+            val resolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            if (uri != null) {
+                resolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                Toast.makeText(context, "Saved $filename to Downloads", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // HTML scanner operator sources
     private val operatorRanges = mapOf(
         "all" to listOf("172.64.0.0/13", "104.16.0.0/12", "162.159.0.0/16", "108.162.192.0/18"),
@@ -585,6 +775,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
 
         if (activeSources.isEmpty() || activePorts.isEmpty()) {
             _isScanning.value = false
+            updateLastScanTime()
             val msg = if (_selectedLanguage.value == AppLanguage.FA) {
                 "خطا: لطفا حداقل یک منبع آی‌پی و یک پورت فعال را انتخاب کنید."
             } else {
@@ -711,6 +902,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         if (!_isScanning.value) return
         scanJob?.cancel()
         _isScanning.value = false
+        updateLastScanTime()
         _currentScanningSubnet.value = ""
         _etaValue.value = "--:--"
         addToLogs("====== SCAN TERMINATED BY USER ======")
@@ -869,6 +1061,7 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         addToLogs("====== SCAN COMPLETE ======")
         addToLogs("Total Verified: $alive | Failed: $dead")
         _isScanning.value = false
+        updateLastScanTime()
         _currentScanningSubnet.value = ""
         _etaValue.value = "--:--"
         viewModelScope.launch(Dispatchers.Main) {
@@ -1051,6 +1244,27 @@ class NovaRadarViewModel(application: Application) : AndroidViewModel(applicatio
         val clip = ClipData.newPlainText("NovaRadarConfig", config)
         clipboard.setPrimaryClip(clip)
         Toast.makeText(context, if (_selectedLanguage.value == AppLanguage.FA) "کپی شد: $config" else "Copied: $config", Toast.LENGTH_SHORT).show()
+    }
+
+    fun copyIndividualIpToClipboard(context: Context, item: AliveIp) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("NovaRadarConfig", item.ip)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, if (_selectedLanguage.value == AppLanguage.FA) "کپی شد: ${item.ip}" else "Copied: ${item.ip}", Toast.LENGTH_SHORT).show()
+    }
+
+    fun copyAllIpsOnly(context: Context) {
+        val list = _allAliveIps.value
+        if (list.isEmpty()) return
+        val text = list.joinToString("\n") { it.ip }
+        copyToClipboard(context, text, "IPs")
+    }
+
+    fun copyAllIpsPort(context: Context) {
+        val list = _allAliveIps.value
+        if (list.isEmpty()) return
+        val text = list.joinToString("\n") { "${it.ip}:${it.port}" }
+        copyToClipboard(context, text, "IP:Port")
     }
 
     private fun generateIpsForSubnet(cidrString: String, maxCount: Int): List<String> {

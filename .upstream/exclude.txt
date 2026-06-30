@@ -1,0 +1,6 @@
+# Files to EXCLUDE from upstream PR
+# These override include.txt — files matching these patterns are SKIPPED
+# Currently empty — if include.txt is broad, use this to fine-tune
+
+# Example: exclude specific internal files
+# *.internal.*

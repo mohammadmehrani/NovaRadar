@@ -20,4 +20,18 @@ debug.keystore
 *.apk
 *.jks
 *.keystore
-.idea/vcs.xml
+.idea/
+/build/reports/
+**/build/reports/
+.githooks/
+DEV_NOTES.md
+nova-radar-android-app/DEVELOPER_GUIDE.md
+nova-radar-android-app/DEVELOPMENT_ROADMAP.md
+nova-radar-android-app/icon/
+nova-radar-android-app/metadata.json
+nova-radar-android-app/upload-key.pem
+
+# Upstream sync cache
+.upstream/last-sync-files.txt
+
+source/

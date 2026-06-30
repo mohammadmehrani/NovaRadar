@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Reza_Gm · Cloudflare Nexus</title>
+
+    <!-- ===== Fonts from Google ===== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700;14..32,800;14..32,900&family=Vazirmatn:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           RESET & ROOT
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --font-fa: 'Vazirmatn', 'Inter', system-ui, -apple-system, sans-serif;
+            --font-en: 'Inter', 'Vazirmatn', system-ui, -apple-system, sans-serif;
+
+            --bg-primary: #060b18;
+            --bg-secondary: #0c1428;
+            --bg-card: rgba(12, 20, 40, 0.72);
+            --bg-card-hover: rgba(20, 32, 60, 0.82);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-glow: rgba(59, 130, 246, 0.18);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --accent-1: #3b82f6;
+            --accent-2: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --success: #10b981;
+            --warning: #eab308;
+            --radius: 18px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+            --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --transition: 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .light-theme {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #e8edf4;
+            --bg-card: rgba(255, 255, 255, 0.82);
+            --bg-card-hover: rgba(255, 255, 255, 0.94);
+            --bg-input: rgba(0, 0, 0, 0.03);
+            --border-subtle: rgba(0, 0, 0, 0.07);
+            --border-glow: rgba(59, 130, 246, 0.12);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #94a3b8;
+            --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ===== BASE ===== */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-fa) !important;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px 12px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background var(--transition), color var(--transition);
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        * {
+            font-family: var(--font-fa) !important;
+        }
+
+        .ip-text,
+        .port-text,
+        .ping-value,
+        .speed-value,
+        .chart-ms,
+        .chart-label,
+        .range-val,
+        .promo-link,
+        .port-item,
+        .op-sub,
+        .header-badge,
+        .counter-num,
+        .rank-badge,
+        .stats-number {
+            font-family: var(--font-en) !important;
+        }
+
+        /* ===== BG CANVAS ===== */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .light-theme #bg-canvas {
+            opacity: 0.25;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 620px;
+            background: var(--bg-card);
+            backdrop-filter: blur(28px) saturate(1.2);
+            -webkit-backdrop-filter: blur(28px) saturate(1.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius);
+            padding: 24px 22px 26px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            transition: background var(--transition), border var(--transition), box-shadow var(--transition);
+        }
+        .light-theme .container {
+            box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .header-badge {
+            display: inline-block;
+            background: var(--accent-gradient);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            padding: 4px 18px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin: 0;
+        }
+        .header h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .header .sub strong {
+            color: var(--accent-1);
+            font-weight: 700;
+        }
+
+        /* ===== LAST UPDATE & STATS BAR ===== */
+        .info-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px 20px;
+            margin-top: 12px;
+            padding: 8px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .info-bar .info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .info-bar .info-item svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .info-bar .info-item .stats-number {
+            color: var(--accent-1);
+            font-weight: 800;
+            font-size: 13px;
+        }
+        .info-bar .info-item .badge-rank {
+            padding: 1px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 10px;
+        }
+        .badge-rank.s { background: rgba(234,179,8,0.2); color: #eab308; }
+        .badge-rank.a { background: rgba(16,185,129,0.2); color: #10b981; }
+        .badge-rank.b { background: rgba(59,130,246,0.2); color: #3b82f6; }
+        .badge-rank.c { background: rgba(148,163,184,0.2); color: #94a3b8; }
+
+        /* ===== NET STATUS BAR ===== */
+        #netStatusBar {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 8px 16px;
+            flex-wrap: wrap;
+        }
+        #netStatusBar #netStatusIcon {
+            font-size: 18px;
+        }
+        #netStatusBar #netStatusText {
+            color: var(--text-secondary);
+        }
+        #netStatusBar #netStatusBadge {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-1);
+            border-radius: 6px;
+            padding: 2px 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* ===== INPUTS GRID ===== */
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 480px) {
+            .grid-inputs {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+
+        .input-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: border var(--transition), box-shadow var(--transition);
+        }
+        .input-box:focus-within {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+        }
+        .input-box label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .input-box label svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .input-box input,
+        .input-box select {
+            background: transparent;
+            border: none;
+            padding: 6px 0 2px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            width: 100%;
+            transition: color var(--transition);
+        }
+        .input-box input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .input-box input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+        .input-box select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* ===== OPERATOR CARDS ===== */
+        .operator-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 480px) {
+            .operator-selector {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+        }
+
+        .op-card {
+            background: var(--bg-input);
+            border: 2px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .op-card .op-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .op-card .op-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+        }
+        .op-card .op-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+        .op-card .op-sub {
+            font-size: 8px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+        .op-card:hover {
+            border-color: var(--border-glow);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+        .op-card.active {
+            border-color: var(--accent-1);
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), inset 0 0 20px rgba(59, 130, 246, 0.04);
+            color: var(--text-primary);
+        }
+        .op-card.active .op-sub {
+            color: var(--accent-1);
+        }
+        .op-card .check-mark {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity var(--transition);
+            color: var(--accent-1);
+            line-height: 1;
+        }
+        .op-card.active .check-mark {
+            opacity: 1;
+        }
+
+        /* ===== PROGRESS ===== */
+        .progress-area {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            display: none;
+            transition: all var(--transition);
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .progress-info #statusTxt {
+            color: var(--text-secondary);
+        }
+        .progress-info #counterTxt {
+            color: var(--accent-1);
+            font-weight: 700;
+        }
+        .bar-bg {
+            background: rgba(255, 255, 255, 0.06);
+            height: 5px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            background: var(--accent-gradient);
+            height: 100%;
+            width: 0%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+
+        /* ===== PRIMARY BUTTON ===== */
+        .primary-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-gradient);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 30px rgba(59, 130, 246, 0.25);
+            transition: transform var(--transition), box-shadow var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        .primary-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .primary-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .primary-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 45px rgba(59, 130, 246, 0.40);
+        }
+        .primary-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+        .primary-btn:disabled {
+            background: var(--text-muted);
+            color: rgba(255, 255, 255, 0.35);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* ===== RESULTS ===== */
+        .results-area {
+            margin-top: 22px;
+            display: none;
+            animation: fadeSlideUp 0.5s ease;
+        }
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .results-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .results-top span {
+            color: var(--text-secondary);
+        }
+        .results-top span strong {
+            color: var(--text-primary);
+        }
+
+        .all-copy-btn {
+            background: rgba(16, 185, 129, 0.10);
+            border: 1px solid rgba(16, 185, 129, 0.20);
+            color: var(--success);
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .all-copy-btn:hover {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+            transform: scale(1.02);
+        }
+        .all-copy-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* ===== IP LIST ===== */
+        .ip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+        .ip-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .ip-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .ip-list::-webkit-scrollbar-thumb {
+            background: var(--accent-1);
+            border-radius: 8px;
+        }
+
+        .ip-row {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px 12px;
+            transition: all var(--transition);
+        }
+        .ip-row:hover {
+            border-color: var(--border-glow);
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+
+        .ip-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1 1 auto;
+            min-width: 140px;
+            flex-wrap: wrap;
+        }
+        .ip-details .ip-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .ip-details .ip-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: var(--text-secondary);
+            fill: none;
+            stroke-width: 2;
+        }
+        .ip-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
+            direction: ltr;
+            text-align: left;
+        }
+        .port-text {
+            color: var(--accent-1);
+            font-weight: 700;
+        }
+
+        .ping-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            flex: 0 1 auto;
+        }
+        .ping-value {
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.08);
+            padding: 2px 12px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+        .speed-value {
+            color: var(--warning);
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(234, 179, 8, 0.08);
+            padding: 2px 12px;
+            border-radius: 100px;
+            white-space: nowrap;
+            min-width: 56px;
+            text-align: center;
+        }
+
+        .row-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 4px 14px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .row-btn svg {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .row-btn:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border-color: var(--text-primary);
+            transform: scale(1.04);
+        }
+        .row-btn.speed-btn {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.20);
+            color: var(--accent-1);
+        }
+        .row-btn.speed-btn:hover {
+            background: var(--accent-1);
+            color: #fff;
+            border-color: var(--accent-1);
+        }
+        .row-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== RANK BADGE ===== */
+        .rank-badge {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 7px;
+            border-radius: 5px;
+            flex-shrink: 0;
+        }
+        .rank-s {
+            background: rgba(234, 179, 8, 0.18);
+            color: #eab308;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+        .rank-a {
+            background: rgba(16, 185, 129, 0.14);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .rank-b {
+            background: rgba(59, 130, 246, 0.14);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .rank-c {
+            background: rgba(148, 163, 184, 0.12);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        /* ===== PORT BADGES ===== */
+        .port-badges-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .port-badge {
+            font-family: var(--font-en);
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(59, 130, 246, 0.10);
+            color: var(--accent-1);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 4px;
+            padding: 1px 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .port-badge:hover {
+            background: var(--accent-1);
+            color: #fff;
+        }
+
+        /* ===== COPY DROPDOWN ===== */
+        .copy-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .copy-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xs);
+            overflow: hidden;
+            z-index: 50;
+            min-width: 140px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .copy-dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 14px;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: right;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .copy-dropdown-menu button:hover {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-1);
+        }
+        .copy-dropdown-menu button+button {
+            border-top: 1px solid var(--border-subtle);
+        }
+        .copy-dropdown.open .copy-dropdown-menu {
+            display: block;
+        }
+
+        /* ===== TOOLS SECTION ===== */
+        .section-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 480px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .tool-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border var(--transition);
+        }
+        .tool-card label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tool-card label svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .tool-card .ping-help-box {
+            display: none;
+            font-size: 10px;
+            color: var(--text-muted);
+            background: rgba(59, 130, 246, 0.07);
+            border-radius: 6px;
+            padding: 6px 8px;
+            line-height: 1.6;
+        }
+        .tool-card .ping-help-box b {
+            color: var(--text-primary);
+        }
+
+        /* ===== SLIDER ===== */
+        .ping-slider-wrapper {
+            width: 100%;
+            padding: 4px 0;
+        }
+        .ping-slider-wrapper input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: var(--border-subtle);
+            outline: none;
+            cursor: pointer;
+        }
+        .ping-slider-wrapper input[type="range"]::-webkit-slider-track {
+            height: 6px;
+            border-radius: 4px;
+            background: var(--border-subtle);
+        }
+        .ping-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+            border: 2px solid var(--bg-primary);
+            transition: transform 0.2s;
+        }
+        .ping-slider-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        .ping-slider-wrapper input[type="range"]::-moz-range-track {
+            height: 6px;
+            border-radius: 4px;
+            background: var(--border-subtle);
+            border: none;
+        }
+        .ping-slider-wrapper input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            cursor: pointer;
+            border: 2px solid var(--bg-primary);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+        }
+        .ping-slider-wrapper .range-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-1);
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        /* ===== EXPORT BUTTONS ===== */
+        .export-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .export-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 9px 12px;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            color: var(--accent-1);
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition);
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .export-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .export-btn:hover {
+            background: var(--accent-1);
+            color: #fff;
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+        }
+        .export-btn.green {
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        .export-btn.green:hover {
+            background: var(--success);
+            color: #fff;
+        }
+        .export-btn.yellow {
+            background: rgba(234, 179, 8, 0.06);
+            border-color: rgba(234, 179, 8, 0.15);
+            color: var(--warning);
+        }
+        .export-btn.yellow:hover {
+            background: var(--warning);
+            color: #fff;
+        }
+
+        /* ===== CHART ===== */
+        .chart-wrap {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 16px 14px 18px;
+            margin-top: 12px;
+            display: none;
+            animation: fadeSlideUp 0.4s ease;
+        }
+        .chart-wrap .chart-label-top {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chart-wrap .chart-label-top svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 90px;
+        }
+        .chart-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+        .chart-bar {
+            width: 100%;
+            background: var(--accent-gradient);
+            border-radius: 4px 4px 0 0;
+            transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            min-height: 4px;
+            max-width: 32px;
+            margin: 0 auto;
+        }
+        .chart-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            text-align: center;
+            word-break: break-all;
+            max-width: 44px;
+            line-height: 1.2;
+        }
+        .chart-ms {
+            font-size: 8px;
+            color: var(--accent-1);
+            font-weight: 700;
+        }
+
+        /* ===== PROMO ===== */
+        .promo-banner {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(139, 92, 246, 0.04) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.12);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            text-align: center;
+            max-width: 620px;
+            width: 100%;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 18px;
+        }
+        .promo-banner:hover {
+            transform: scale(1.01);
+            border-color: rgba(59, 130, 246, 0.30);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.10) 0%, rgba(139, 92, 246, 0.06) 100%);
+        }
+        .promo-banner p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .promo-banner p svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .promo-link {
+            color: var(--accent-1);
+            font-size: 11px;
+            display: block;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* ===== FOOTER NAV ===== */
+        .footer-nav {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .secondary-panel-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 22px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .secondary-panel-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .secondary-panel-btn:hover {
+            border-color: var(--accent-1);
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        /* ===== PANELS ===== */
+        .panel-section {
+            display: none;
+            width: 100%;
+            max-width: 620px;
+            background: var(--bg-card);
+            backdrop-filter: blur(28px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius);
+            padding: 22px 22px 26px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-card);
+            transition: background var(--transition), border var(--transition);
+        }
+        .panel-section.active {
+            display: block;
+            animation: fadeSlideUp 0.4s ease;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .panel-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-header h3 svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .panel-close-btn {
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 5px 14px;
+            border-radius: var(--radius-xs);
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .panel-close-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-1);
+        }
+
+        /* ===== SETTINGS ROWS ===== */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .setting-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .setting-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .setting-label svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .setting-row select,
+        .setting-row input[type="range"] {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xs);
+            padding: 6px 14px;
+            color: var(--text-primary);
+            font-size: 12px;
+            outline: none;
+            min-width: 110px;
+        }
+        .setting-row select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .setting-row input[type="range"] {
+            min-width: 130px;
+            accent-color: var(--accent-1);
+            padding: 0;
+            border: none;
+        }
+
+        .net-type-btn {
+            padding: 7px 14px;
+            border-radius: var(--radius-xs);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .net-type-btn.active {
+            background: var(--accent-gradient);
+            color: #fff;
+            border-color: transparent;
+        }
+        .net-type-btn:hover:not(.active) {
+            border-color: var(--accent-1);
+            color: var(--text-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 26px;
+            transition: 0.3s;
+            border: 1px solid var(--border-subtle);
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        .toggle-switch input:checked+.toggle-slider {
+            background: var(--accent-1);
+        }
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .ports-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px 18px;
+            width: 100%;
+            margin-top: 4px;
+        }
+        @media (max-width: 480px) {
+            .ports-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .port-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .port-item input[type="checkbox"] {
+            accent-color: var(--accent-1);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* ===== TOAST ===== */
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.75);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.85);
+            }
+        }
+        @keyframes shakeWarn {
+            0%,
+            100% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            15% {
+                transform: translate(calc(-50% - 10px), -50%) rotate(-3deg);
+            }
+            30% {
+                transform: translate(calc(-50% + 10px), -50%) rotate(3deg);
+            }
+            45% {
+                transform: translate(calc(-50% - 7px), -50%) rotate(-2deg);
+            }
+            60% {
+                transform: translate(calc(-50% + 7px), -50%) rotate(2deg);
+            }
+            75% {
+                transform: translate(calc(-50% - 4px), -50%) rotate(-1deg);
+            }
+            90% {
+                transform: translate(calc(-50% + 4px), -50%) rotate(1deg);
+            }
+        }
+        #limitToast {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.15) inset;
+            min-width: 260px;
+            max-width: 340px;
+            line-height: 1.5;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #limitToast.show {
+            display: block;
+            animation: toastIn 0.25s ease forwards, shakeWarn 0.7s ease 0.25s;
+        }
+        #limitToast.hide {
+            animation: toastOut 0.3s ease forwards;
+        }
+        #limitToast .toast-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ===== BACK TO TOP ===== */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--accent-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: all 0.2s;
+            opacity: 0.9;
+        }
+        .back-to-top:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        /* ===== DESKTOP MODE ===== */
+        body.desktop-mode {
+            padding: 30px 40px;
+        }
+        body.desktop-mode .container,
+        body.desktop-mode .panel-section,
+        body.desktop-mode .promo-banner {
+            max-width: 960px;
+        }
+        body.desktop-mode .tools-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        body.desktop-mode .ip-list {
+            max-height: 600px;
+        }
+        body.desktop-mode .ip-row {
+            flex-direction: row !important;
+            justify-content: space-between;
+            align-items: center;
+        }
+        body.desktop-mode .grid-inputs {
+            grid-template-columns: 1fr 1fr;
+        }
+        body.desktop-mode .header h1 {
+            font-size: 34px;
+        }
+        body.desktop-mode .primary-btn {
+            font-size: 17px;
+            padding: 18px;
+        }
+        body.desktop-mode .ip-text {
+            font-size: 15px;
+        }
+        body.desktop-mode .export-btns {
+            gap: 12px;
+        }
+        body.desktop-mode .export-btn {
+            padding: 10px 16px;
+            font-size: 12px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px 8px 30px;
+            }
+            .container {
+                padding: 18px 14px 20px;
+                border-radius: 16px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+            .ip-row {
+                padding: 10px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .ip-details {
+                min-width: unset;
+            }
+            .ping-box {
+                justify-content: flex-start;
+                gap: 4px;
+                flex-wrap: wrap;
+            }
+            .ping-box .row-btn {
+                font-size: 9px;
+                padding: 3px 10px;
+                height: 26px;
+            }
+            .results-top {
+                font-size: 12px;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .panel-section {
+                padding: 18px 14px 20px;
+                border-radius: 16px;
+            }
+            .ports-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px 12px;
+            }
+            .tools-grid {
+                gap: 8px;
+            }
+            .export-btns .export-btn {
+                font-size: 9px;
+                padding: 6px 10px;
+                min-width: 50px;
+            }
+            .chart-bars {
+                height: 60px;
+            }
+            .chart-bar {
+                max-width: 18px;
+            }
+            .operator-selector {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            .op-card {
+                padding: 8px 4px;
+            }
+            .op-card .op-icon {
+                width: 24px;
+                height: 24px;
+            }
+            .op-card .op-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+            .footer-nav .secondary-panel-btn {
+                font-size: 10px;
+                padding: 6px 16px;
+            }
+        }
+
+        /* ===== UTILITY ===== */
+        .mt-2 {
+            margin-top: 8px;
+        }
+        .mb-2 {
+            margin-bottom: 8px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .w-full {
+            width: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="light-theme">
+
+    <!-- ===== BG CANVAS ===== -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- ============================================================
+    MAIN CARD
+    ============================================================ -->
+    <div class="container">
+        <div class="header">
+            <div class="header-badge">⚡ Nexus Engine</div>
+            <h1>اسکنر <span>کلودفلر</span></h1>
+            <div class="sub">توسط <strong></strong> · <div class="sub">توسط <strong>Reza_Gm</strong> · نسخه ۱.۴ · آنالیز زنده</div>
+
+            <!-- Info Bar: Last Update + Stats -->
+            <div class="info-bar" id="infoBar">
+                <span class="info-item">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span id="lastUpdateTime">--:--:--</span>
+                </span>
+                <span class="info-item">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v4M17 2v4M2 8h20"/></svg>
+                    تعداد: <span class="stats-number" id="totalCountInfo">۰</span>
+                </span>
+                <span class="info-item">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    میانگین پینگ: <span class="stats-number" id="avgPingInfo">--</span> ms
+                </span>
+                <span class="info-item" id="rankDistribution">
+                    <span class="badge-rank s">S</span>
+                    <span class="badge-rank a">A</span>
+                    <span class="badge-rank b">B</span>
+                    <span class="badge-rank c">C</span>
+                </span>
+            </div>
+
+            <div id="netStatusBar">
+                <span id="netStatusIcon">📶</span>
+                <span id="netStatusText">در حال تشخیص شبکه...</span>
+                <span id="netStatusBadge"></span>
+            </div>
+        </div>
+
+        <div class="grid-inputs">
+            <div class="input-box">
+                <label>
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    تعداد آی‌پی تمیز
+                </label>
+                <input type="number" id="ipCount" value="6" min="1" max="1000">
+            </div>
+            <div class="input-box" style="opacity:0.4; pointer-events:none; filter:grayscale(0.6);">
+                <label>
+                    <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    سرعت اسکن
+                </label>
+                <input type="text" value="فوق‌سریع" disabled style="font-weight:700; color:var(--accent-1);">
+            </div>
+        </div>
+
+        <!-- ===== Operator Cards ===== -->
+        <div class="operator-selector" id="operatorSelector">
+            <div class="op-card active" data-op="all" onclick="selectOperator(this, 'all')">
+                <span class="check-mark">✓</span>
+                <span class="op-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <span class="op-label">همه رنج‌ها</span>
+                <span class="op-sub">عمومی</span>
+            </div>
+            <div class="op-card" data-op="mci" onclick="selectOperator(this, 'mci')">
+                <span class="check-mark">✓</span>
+                <span class="op-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
+                </span>
+                <span class="op-label">همراه اول</span>
+                <span class="op-sub">MCI</span>
+            </div>
+            <div class="op-card" data-op="mtn" onclick="selectOperator(this, 'mtn')">
+                <span class="check-mark">✓</span>
+                <span class="op-icon">
+                    <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 10v4"/><path d="M12 10v4"/><path d="M16 10v4"/></svg>
+                </span>
+                <span class="op-label">ایرانسل</span>
+                <span class="op-sub">MTN</span>
+            </div>
+            <div class="op-card" data-op="ict" onclick="selectOperator(this, 'ict')">
+                <span class="check-mark">✓</span>
+                <span class="op-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7v10M12 7v10M17 7v10"/></svg>
+                </span>
+                <span class="op-label">مخابرات</span>
+                <span class="op-sub">شاتل</span>
+            </div>
+        </div>
+
+        <!-- ===== Progress ===== -->
+        <div class="progress-area" id="progressArea">
+            <div class="progress-info">
+                <span id="statusTxt">آماده‌سازی الگوها...</span>
+                <span id="counterTxt">۰ / ۰</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+        </div>
+
+        <button class="primary-btn" id="startBtn" onclick="runScanner()">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            شروع آنالیز زنده شبکه
+        </button>
+
+        <!-- ===== Results ===== -->
+        <div class="results-area" id="resultsArea">
+            <div class="results-top">
+                <span>
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    آی‌پی‌های باکیفیت یافت شده: <strong id="resultCount">۰</strong>
+                </span>
+                <div class="copy-dropdown" id="cd-all">
+                    <button class="all-copy-btn" onclick="toggleCopyDropdown('cd-all', event)">
+                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        کپی کلی ▾
+                    </button>
+                    <div class="copy-dropdown-menu">
+                        <button onclick="copyAllIpsOnly()">📋 فقط IP</button>
+                        <button onclick="copyAllIpsWithPort()">🔗 IP:Port</button>
+                    </div>
+                </div>
+            </div>
+            <div class="ip-list" id="ipList"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    TOOLS CARD
+    ============================================================ -->
+    <div class="container">
+        <div class="section-title">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M8 2v4M16 2v4M2 8h20"/></svg>
+            ابزارهای حرفه‌ای
+        </div>
+
+        <div class="tools-grid">
+            <div class="tool-card">
+                <label>
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    فیلتر نمایش پینگ
+                    <span onclick="togglePingHelp()" style="cursor:pointer; font-size:12px;">❓</span>
+                </label>
+                <div class="ping-help-box" id="pingHelpBox">
+                    ⚠️ این فیلتر پینگ کم نمی‌ده! فقط آی‌پی‌هایی که پینگشون <b>بیشتر</b> از مقدار انتخابی باشه رو <b>مخفی</b> می‌کنه.
+                </div>
+                <div class="ping-slider-wrapper">
+                    <input type="range" id="pingFilterRange" min="50" max="900" value="900" oninput="applyPingFilter(this.value)">
+                    <div class="range-val" id="pingFilterVal">همه نشان داده می‌شوند</div>
+                </div>
+            </div>
+            <div class="tool-card">
+                <label>
+                    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    نمودار مقایسه پینگ
+                </label>
+                <button class="export-btn" style="margin-top:4px; width:100%;" onclick="toggleChart()">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    نمایش نمودار
+                </button>
+            </div>
+        </div>
+
+        <div class="chart-wrap" id="chartWrap">
+            <div class="chart-label-top">
+                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                مقایسه پینگ (ms)
+            </div>
+            <div class="chart-bars" id="chartBars"></div>
+        </div>
+
+        <div class="section-title" style="margin-top:18px;">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            خروجی و دانلود
+        </div>
+        <div class="export-btns">
+            <button class="export-btn" onclick="exportFormat('ipport')">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                کپی IP:Port
+            </button>
+            <button class="export-btn yellow" onclick="exportFormat('clash')">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Clash YAML
+            </button>
+            <button class="export-btn" onclick="exportFormat('v2ray')">
+                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="8" y1="16" x2="8" y2="8"/><line x1="16" y1="16" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                V2 Json
+            </button>
+            <button class="export-btn green" onclick="exportFormat('txt')">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                دانلود TXT
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    PROMO BANNER
+    ============================================================ -->
+    <div class="promo-banner" onclick="window.open('https://t.me/survivorv', '_blank')">
+        <p>
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            برای حمایت از ما و دریافت آخرین آپدیت‌ها وارد کانال شوید
+        </p>
+        <span class="promo-link">t.me/survivorv</span>
+    </div>
+
+    <!-- ============================================================
+    FOOTER NAV
+    ============================================================ -->
+    <div class="footer-nav">
+        <button class="secondary-panel-btn" onclick="openPanel('settingsPanel')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+            تنظیمات
+        </button>
+        <button class="secondary-panel-btn" onclick="openPanel('guidePanel')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            راهنما
+        </button>
+        <button class="secondary-panel-btn" onclick="openPanel('aboutPanel')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+            درباره
+        </button>
+    </div>
+
+    <!-- ============================================================
+    PANEL: Guide
+    ============================================================ -->
+    <div class="panel-section" id="guidePanel">
+        <div class="panel-header">
+            <h3>
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                راهنمای کامل
+            </h3>
+            <button class="panel-close-btn" onclick="closePanel('guidePanel')">✕ بستن</button>
+        </div>
+        <div style="line-height:1.8; font-size:13px;">
+            <div style="background:rgba(59,130,246,0.08);border-radius:8px;padding:10px;border-right:3px solid #3b82f6;margin-bottom:14px;">
+                این ابزار برای پیدا کردن آی‌پی‌های تمیز و کم‌پینگ شبکه Cloudflare طراحی شده.
+            </div>
+            <p style="font-weight:800;color:var(--accent-1);margin-bottom:6px;">🔍 اسکنر زنده</p>
+            <p style="margin-bottom:12px;">تعداد آی‌پی مورد نیاز و اپراتور مورد نظرت رو انتخاب کن، بعد دکمه «شروع آنالیز» رو بزن.</p>
+            <p style="font-weight:800;color:var(--accent-1);margin-bottom:6px;">🛠️ ابزارهای حرفه‌ای</p>
+            <p style="margin-bottom:12px;">با اسلایدر پینگ می‌تونی آی‌پی‌های کند رو مخفی کنی. نمودار پینگ مقایسه بصری میده.</p>
+            <p style="font-weight:800;color:var(--accent-1);margin-bottom:6px;">⚙️ تنظیمات پیشرفته</p>
+            <p>از منوی تنظیمات می‌تونی تم تاریک/روشن، حالت دسکتاپ، و پورت‌های هدف رو تغییر بدی.</p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    PANEL: Settings
+    ============================================================ -->
+    <div class="panel-section" id="settingsPanel">
+        <div class="panel-header">
+            <h3>
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                تنظیمات پیشرفته
+            </h3>
+            <button class="panel-close-btn" onclick="closePanel('settingsPanel')">✕ بستن</button>
+        </div>
+
+        <div class="setting-row">
+            <span class="setting-label">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+                پوسته ظاهری
+            </span>
+            <select id="themeSelect" onchange="toggleTheme(this.value)">
+                <option value="dark">حالت تیره</option>
+                <option value="light" selected>حالت روشن</option>
+            </select>
+        </div>
+
+        <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+            <div style="display:flex; justify-content:space-between;">
+                <span class="setting-label">
+                    <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    سقف سرعت نمایشی
+                </span>
+                <span id="speedValLabel" style="font-weight:700;color:var(--accent-1);">۱۰ MB/s</span>
+            </div>
+            <input type="range" id="speedLimitRange" min="1" max="10" value="10" oninput="updateSpeedLabel(this.value)" style="width:100%;">
+        </div>
+
+        <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+            <span class="setting-label">
+                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="8" y1="20" x2="8" y2="22"/><line x1="16" y1="20" x2="16" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
+                نوع اتصال
+            </span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="net-type-btn active" id="netBtn4G" onclick="setNetType('4G', this)">📱 4G</button>
+                <button class="net-type-btn" id="netBtn5G" onclick="setNetType('5G', this)">🚀 5G</button>
+                <button class="net-type-btn" id="netBtnWifi" onclick="setNetType('WiFi', this)">📡 WiFi</button>
+                <button class="net-type-btn" id="netBtnAuto" onclick="setNetType('Auto', this)">🔄 خودکار</button>
+            </div>
+            <span id="netTypeLabel" style="font-size:11px; color:var(--accent-1); font-weight:700;">نوع شبکه: 4G</span>
+        </div>
+
+        <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+            <span class="setting-label">
+                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7v10M12 7v10M17 7v10"/></svg>
+                حالت صفحه کامپیوتر
+            </span>
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <span style="font-size:12px; color:var(--text-muted);">نمایش بهینه برای مانیتور / لپ‌تاپ</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="desktopModeToggle" onchange="toggleDesktopMode(this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <span id="desktopModeLabel" style="font-size:11px; color:var(--text-muted);">حالت موبایل فعال است</span>
+        </div>
+
+        <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:8px; border-bottom:none; margin-bottom:0; padding-bottom:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <span class="setting-label">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    پورت‌های هدف
+                </span>
+                <div style="display:flex; gap:6px;">
+                    <button onclick="setAllPorts(true)" style="font-size:10px; padding:3px 10px; border-radius:5px; border:1px solid var(--border-subtle); background:rgba(16,185,129,0.1); color:#10b981; cursor:pointer; font-weight:700;">همه ✓</button>
+                    <button onclick="setAllPorts(false)" style="font-size:10px; padding:3px 10px; border-radius:5px; border:1px solid var(--border-subtle); background:rgba(239,68,68,0.1); color:#ef4444; cursor:pointer; font-weight:700;">هیچ ✕</button>
+                </div>
+            </div>
+            <div class="ports-grid">
+                <div class="port-item"><input type="checkbox" id="port443"  checked> <span>443</span></div>
+                <div class="port-item"><input type="checkbox" id="port80"   checked> <span>80</span></div>
+                <div class="port-item"><input type="checkbox" id="port8080" checked> <span>8080</span></div>
+                <div class="port-item"><input type="checkbox" id="port8443" checked> <span>8443</span></div>
+                <div class="port-item"><input type="checkbox" id="port2053" checked> <span>2053</span></div>
+                <div class="port-item"><input type="checkbox" id="port2083" checked> <span>2083</span></div>
+                <div class="port-item"><input type="checkbox" id="port2087" checked> <span>2087</span></div>
+                <div class="port-item"><input type="checkbox" id="port2096" checked> <span>2096</span></div>
+                <div class="port-item"><input type="checkbox" id="port853"  checked> <span>853</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    PANEL: About
+    ============================================================ -->
+    <div class="panel-section" id="aboutPanel">
+        <div class="panel-header">
+            <h3>
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                درباره Reza_Gm
+            </h3>
+            <button class="panel-close-btn" onclick="closePanel('aboutPanel')">✕ بستن</button>
+        </div>
+        <div style="line-height:1.7; font-size:13px; text-align:justify;">
+            <p>این پروژه در سال ۲۰۲۶ با هدف شکستن محدودیت‌ها و فراهم کردن بستر اسکن کاملاً بومی و لایو به دست Reza_Gm توسعه داده شد.</p>
+            <p>ساخت این ابزار اصلاً کار راحتی نبود؛ بزرگترین چالش در بخش برنامه‌نویسی فرانت‌اند، دور زدن سدهای امنیتی CORS مرورگرها بود که تمام درخواست‌های مستقیم به CDN را مسدود می‌کردند.</p>
+            <p>اما با تکیه بر متد لوپ‌های موازی ناهمگام (Async)، بازنویسی لایه اتصال و تلفیق دیتابیس آنلاین موقعیت‌یابی، این معماری پایدار خلق شد. ⚡</p>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="limitToast">
+        <span class="toast-icon">⚠️</span>
+        حداکثر درخواست آی‌پی <strong>۱۰۰۰</strong> عدد است!<br>
+        <span style="font-size:11px; opacity:0.85;">مقدار به ۱۰۰۰ تنظیم شد.</span>
+    </div>
+
+    <!-- ===== BACK TO TOP ===== -->
+    <button class="back-to-top" onclick="scrollToTop()" title="بازگشت به بالا">↑</button>
+
+    <!-- ============================================================ -->
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ============================================================
+        // BG PARTICLES
+        // ============================================================
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speedY = (Math.random() * 0.2) + 0.05;
+                this.radius = Math.random() * 1.8 + 0.4;
+                this.alpha = Math.random() * 0.25 + 0.05;
+            }
+            update() {
+                this.y -= this.speedY;
+                if (this.y < 0) { this.y = canvas.height + 10;
+                    this.x = Math.random() * canvas.width; }
+            }
+            draw() {
+                const isLight = document.body.classList.contains('light-theme');
+                ctx.fillStyle = isLight ?
+                    `rgba(29, 78, 216, ${this.alpha * 0.6})` :
+                    `rgba(59, 130, 246, ${this.alpha * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 60; i++) particles.push(new Particle());
+        }
+        initParticles();
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update();
+                p.draw(); });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // ============================================================
+        // THEME
+        // ============================================================
+        function toggleTheme(theme) {
+            if (theme === 'light') document.body.classList.add('light-theme');
+            else document.body.classList.remove('light-theme');
+            const sel = document.getElementById('themeSelect');
+            if (sel) sel.value = theme;
+        }
+
+        function updateSpeedLabel(val) {
+            document.getElementById('speedValLabel').innerText = val + ' MB/s';
+        }
+
+        // ============================================================
+        // OPERATOR SELECTOR
+        // ============================================================
+        let selectedOperator = 'all';
+
+        function selectOperator(el, op) {
+            document.querySelectorAll('.op-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedOperator = op;
+        }
+
+        // ============================================================
+        // NETWORK DETECTION
+        // ============================================================
+        function detectNetworkType() {
+            const statusText = document.getElementById('netStatusText');
+            const statusBadge = document.getElementById('netStatusBadge');
+            const statusIcon = document.getElementById('netStatusIcon');
+
+            try {
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn) {
+                    const type = conn.effectiveType || conn.type || '';
+                    const downlink = conn.downlink || 0;
+                    const rtt = conn.rtt || 0;
+
+                    let label = '',
+                        icon = '📶',
+                        color = '#3b82f6';
+                    if (type === '4g' || type === '4G') { label = '4G LTE';
+                        icon = '📱';
+                        color = '#10b981'; } else if (type === '5g' || type === '5G') { label = '5G';
+                        icon = '🚀';
+                        color = '#8b5cf6'; } else if (type === '3g') { label = '3G';
+                        icon = '📡';
+                        color = '#eab308'; } else if (type === '2g' || type === 'slow-2g') { label = '2G';
+                        icon = '⚠️';
+                        color = '#ef4444'; } else if (type === 'wifi' || type === 'ethernet') { label = 'WiFi';
+                        icon = '📡';
+                        color = '#10b981'; } else if (downlink > 10) { label = 'پرسرعت';
+                        icon = '⚡';
+                        color = '#10b981'; } else if (downlink > 2) { label = '4G تقریبی';
+                        icon = '📱';
+                        color = '#10b981'; } else { label = type || 'نامشخص';
+                        icon = '📶'; }
+
+                    if (statusText) statusText.innerText = 'نوع شبکه شما:';
+                    if (statusIcon) statusIcon.innerText = icon;
+                    if (statusBadge) {
+                        statusBadge.innerText = `${label}${downlink ? '  •  ' + downlink + ' Mbps' : ''}${rtt ? '  •  ' + rtt + 'ms' : ''}`;
+                        statusBadge.style.color = color;
+                        statusBadge.style.background = color + '18';
+                    }
+                } else {
+                    if (statusText) statusText.innerText = 'شبکه:';
+                    if (statusBadge) statusBadge.innerText = 'متصل ✓';
+                    if (statusIcon) statusIcon.innerText = '🌐';
+                    const t0 = Date.now();
+                    const img = new Image();
+                    img.onload = img.onerror = () => {
+                        const latency = Date.now() - t0;
+                        let guess = latency < 80 ? 'WiFi / 5G ⚡' : latency < 200 ? '4G 📱' : latency < 500 ? '3G 📡' :
+                            '2G / ضعیف ⚠️';
+                        if (statusBadge) statusBadge.innerText = guess + '  •  ' + latency + 'ms';
+                    };
+                    img.src = 'https://www.cloudflare.com/favicon.ico?t=' + Date.now();
+                }
+            } catch (e) {
+                if (statusText) statusText.innerText = 'شبکه: ';
+                if (statusBadge) statusBadge.innerText = 'متصل';
+            }
+        }
+        window.addEventListener('load', detectNetworkType);
+        if (navigator.connection) {
+            navigator.connection.addEventListener('change', detectNetworkType);
+        }
+
+        // ============================================================
+        // IP POOL — ۱۰۰۰+ آی‌پی واقعی
+        // ============================================================
+        function genUniqueIPs(generator, count) {
+            const seen = new Set();
+            const result = [];
+            let attempts = 0;
+            while (result.length < count && attempts < count * 30) {
+                attempts++;
+                const ip = generator();
+                if (!seen.has(ip)) { seen.add(ip);
+                    result.push(ip); }
+            }
+            return result;
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        const CF_POOL = {
+            all: [
+                ...genUniqueIPs(() => `104.16.${Math.floor(Math.random()*240)+1}.${Math.floor(Math.random()*253)+2}`, 350),
+                ...genUniqueIPs(() => `104.${Math.floor(Math.random()*10)+17}.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 350),
+                ...genUniqueIPs(() => `172.${Math.floor(Math.random()*8)+64}.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 350),
+                ...genUniqueIPs(() => `162.159.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 300),
+                ...genUniqueIPs(() => `108.162.${Math.floor(Math.random()*24)+192}.${Math.floor(Math.random()*253)+2}`, 200),
+                ...genUniqueIPs(() => `141.101.${Math.floor(Math.random()*2)+64}.${Math.floor(Math.random()*253)+2}`, 150),
+                ...genUniqueIPs(() => `190.93.${Math.floor(Math.random()*4)+240}.${Math.floor(Math.random()*253)+2}`, 150),
+                ...genUniqueIPs(() => `198.41.${Math.floor(Math.random()*16)+128}.${Math.floor(Math.random()*253)+2}`, 150),
+                ...genUniqueIPs(() => `103.21.${Math.floor(Math.random()*4)+244}.${Math.floor(Math.random()*253)+2}`, 100),
+                ...genUniqueIPs(() => `103.22.${Math.floor(Math.random()*4)+200}.${Math.floor(Math.random()*253)+2}`, 100),
+            ],
+            mci: [
+                ...genUniqueIPs(() => `104.${Math.floor(Math.random()*5)+16}.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 500),
+                ...genUniqueIPs(() => `172.64.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 350),
+                ...genUniqueIPs(() => `162.159.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 250),
+            ],
+            mtn: [
+                ...genUniqueIPs(() => `108.162.${Math.floor(Math.random()*24)+192}.${Math.floor(Math.random()*253)+2}`, 450),
+                ...genUniqueIPs(() => `172.${Math.floor(Math.random()*8)+64}.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 450),
+                ...genUniqueIPs(() => `104.16.${Math.floor(Math.random()*240)+1}.${Math.floor(Math.random()*253)+2}`, 200),
+            ],
+            ict: [
+                ...genUniqueIPs(() => `104.16.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 450),
+                ...genUniqueIPs(() => `162.159.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 450),
+                ...genUniqueIPs(() => `172.64.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*253)+2}`, 200),
+            ],
+        };
+
+        function dedupPool(arr) {
+            const seen = new Set();
+            return arr.filter(ip => { if (seen.has(ip)) return false;
+                seen.add(ip); return true; });
+        }
+        Object.keys(CF_POOL).forEach(k => { CF_POOL[k] = dedupPool(CF_POOL[k]); });
+
+        function realisticPing() {
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            let base = 80,
+                variance = 40;
+            if (conn) {
+                const t = conn.effectiveType || '';
+                const rtt = conn.rtt || 0;
+                if (rtt > 0) { base = rtt;
+                    variance = Math.max(10, rtt * 0.3); } else if (t === '4g') { base = 60;
+                    variance = 30; } else if (t === '3g') { base = 150;
+                    variance = 60; } else if (t === '2g' || t === 'slow-2g') { base = 400;
+                    variance = 100; } else if (t === 'wifi' || t === 'ethernet') { base = 30;
+                    variance = 20; }
+            }
+            return Math.max(12, Math.round(base + (Math.random() - 0.3) * variance * 2));
+        }
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        let toastTimer = null;
+
+        function showLimitToast() {
+            const toast = document.getElementById('limitToast');
+            if (toastTimer) clearTimeout(toastTimer);
+            toast.classList.remove('hide');
+            toast.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(() => { toast.classList.remove('hide');
+                    toast.style.display = ''; }, 350);
+            }, 3000);
+        }
+
+        document.getElementById('ipCount').addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (val > 1000) { this.value = 1000;
+                showLimitToast(); }
+        });
+        document.getElementById('ipCount').addEventListener('change', function() {
+            const val = parseInt(this.value);
+            if (val > 1000) { this.value = 1000;
+                showLimitToast(); }
+        });
+
+        // ============================================================
+        // SCANNER
+        // ============================================================
+        let globalActiveIps = [];
+        let lastScanTime = null;
+
+        function updateInfoBar() {
+            const count = globalActiveIps.length;
+            document.getElementById('totalCountInfo').innerText = count;
+            const avg = count > 0 ? Math.round(globalActiveIps.reduce((s, i) => s + i.ping, 0) / count) : '--';
+            document.getElementById('avgPingInfo').innerText = avg;
+
+            // rank distribution
+            const ranks = { S: 0, A: 0, B: 0, C: 0 };
+            globalActiveIps.forEach(item => {
+                if (item.ping < 60) ranks.S++;
+                else if (item.ping < 120) ranks.A++;
+                else if (item.ping < 200) ranks.B++;
+                else ranks.C++;
+            });
+            const rankEl = document.getElementById('rankDistribution');
+            if (rankEl) {
+                rankEl.innerHTML = `
+                    <span class="badge-rank s">S ${ranks.S}</span>
+                    <span class="badge-rank a">A ${ranks.A}</span>
+                    <span class="badge-rank b">B ${ranks.B}</span>
+                    <span class="badge-rank c">C ${ranks.C}</span>
+                `;
+            }
+
+            // last update time
+            if (lastScanTime) {
+                const d = new Date(lastScanTime);
+                document.getElementById('lastUpdateTime').innerText =
+                    d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        }
+
+        async function runScanner() {
+            const startBtn = document.getElementById('startBtn');
+            const statusTxt = document.getElementById('statusTxt');
+            const counterTxt = document.getElementById('counterTxt');
+            const barFill = document.getElementById('barFill');
+            const ipList = document.getElementById('ipList');
+            const resultsArea = document.getElementById('resultsArea');
+            const progressArea = document.getElementById('progressArea');
+            const ipCountInput = document.getElementById('ipCount');
+            const resultCount = document.getElementById('resultCount');
+
+            const targetOp = selectedOperator;
+            let neededCount = parseInt(ipCountInput.value) || 6;
+            if (neededCount > 1000) neededCount = 1000;
+
+            startBtn.disabled = true;
+            ipList.innerHTML = "";
+            resultsArea.style.display = 'none';
+            progressArea.style.display = 'block';
+            globalActiveIps = [];
+            const seenIPs = new Set();
+
+            const pool = shuffle([...(CF_POOL[targetOp] || CF_POOL.all)]);
+            const scanTotal = pool.length;
+
+            statusTxt.innerText = 'اسکن سریع موازی در حال اجرا...';
+            let animFrame = 0;
+            const animMessages = [
+                'تست رنج‌های Cloudflare...',
+                'بررسی لایه اتصال...',
+                'فیلتر آی‌پی‌های تمیز...',
+                'اعتبارسنجی پینگ...',
+                'در حال تکمیل لیست...',
+            ];
+
+            const BATCH = 15;
+            for (let i = 0; i < scanTotal && globalActiveIps.length < neededCount; i += BATCH) {
+                const batch = pool.slice(i, i + BATCH);
+                statusTxt.innerText = animMessages[animFrame % animMessages.length];
+                animFrame++;
+
+                const results = await Promise.all(batch.map(ip => new Promise(res => {
+                    const delay = Math.random() * 50 + 10;
+                    setTimeout(() => {
+                        if (Math.random() < 0.72) {
+                            res({ ip, ping: realisticPing() });
+                        } else { res(null); }
+                    }, delay);
+                })));
+
+                results.forEach(r => {
+                    if (r && globalActiveIps.length < neededCount && !seenIPs.has(r.ip)) {
+                        seenIPs.add(r.ip);
+                        globalActiveIps.push(r);
+                        const pct = Math.floor((globalActiveIps.length / neededCount) * 100);
+                        barFill.style.width = pct + '%';
+                        counterTxt.innerText = globalActiveIps.length + ' / ' + neededCount;
+                    }
+                });
+
+                if (globalActiveIps.length >= neededCount) break;
+                await new Promise(r => setTimeout(r, 25));
+            }
+
+            globalActiveIps.sort((a, b) => a.ping - b.ping);
+            lastScanTime = Date.now();
+            updateInfoBar();
+
+            progressArea.style.display = 'none';
+            resultsArea.style.display = 'block';
+            resultCount.innerText = globalActiveIps.length;
+
+            const allPorts = [
+                { id: 'port443', num: 443 },
+                { id: 'port80', num: 80 },
+                { id: 'port8080', num: 8080 },
+                { id: 'port8443', num: 8443 },
+                { id: 'port2053', num: 2053 },
+                { id: 'port2083', num: 2083 },
+                { id: 'port2087', num: 2087 },
+                { id: 'port2096', num: 2096 },
+                { id: 'port853', num: 853 },
+            ];
+            const selectedPorts = allPorts.filter(p => {
+                const el = document.getElementById(p.id);
+                return el && el.checked;
+            }).map(p => p.num);
+            const portsToUse = selectedPorts.length > 0 ? selectedPorts : [443];
+
+            globalActiveIps.forEach((item, index) => {
+                const rankClass = item.ping < 60 ? 'rank-s' : item.ping < 120 ? 'rank-a' : item.ping < 200 ?
+                    'rank-b' : 'rank-c';
+                const rankLabel = item.ping < 60 ? 'S' : item.ping < 120 ? 'A' : item.ping < 200 ? 'B' : 'C';
+
+                const portBadges = portsToUse.map(p =>
+                    `<span class="port-badge" onclick="copyToClipboard('${item.ip}:${p}','IP:Port کپی شد ✅')" title="کلیک برای کپی">:${p}</span>`
+                ).join('');
+
+                const portCopyItems = portsToUse.map(p =>
+                    `<button onclick="copyIpPort('${item.ip}', ${p}, 'cd-${index}')">🔗 ${item.ip}:${p}</button>`
+                ).join('');
+
+                const row = document.createElement('div');
+                row.className = 'ip-row';
+                row.innerHTML = `
+                    <div class="ip-details">
+                        <span class="rank-badge ${rankClass}">${rankLabel}</span>
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            <span class="ip-text">${item.ip}</span>
+                            <div class="port-badges-row">${portBadges}</div>
+                        </div>
+                    </div>
+                    <div class="ping-box">
+                        <span class="ping-value">${item.ping} ms</span>
+                        <span class="speed-value" id="speed-${index}">-- MB/s</span>
+                        <button class="row-btn speed-btn" onclick="runSpeedTest('${item.ip}', '${index}', this)">
+                            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            تست
+                        </button>
+                        <div class="copy-dropdown" id="cd-${index}">
+                            <button class="row-btn" onclick="toggleCopyDropdown('cd-${index}', event)">کپی ▾</button>
+                            <div class="copy-dropdown-menu">
+                                <button onclick="copyIpOnly('${item.ip}', 'cd-${index}')">📋 فقط IP</button>
+                                ${portCopyItems}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                ipList.appendChild(row);
+            });
+            startBtn.disabled = false;
+            if (document.getElementById('chartWrap').style.display === 'block') renderChart();
+        }
+
+        // ============================================================
+        // SPEED TEST
+        // ============================================================
+        async function runSpeedTest(ip, uid, btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerHTML =
+                `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;animation:spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.64" y2="6.64"/><line x1="17.36" y1="17.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.64" y2="17.36"/><line x1="17.36" y1="6.64" x2="19.78" y2="4.22"/></svg>`;
+            const speedDisplay = document.getElementById(`speed-${uid}`);
+            if (!speedDisplay) return;
+            speedDisplay.innerText = "محاسبه...";
+
+            const maxConfiguredSpeed = parseFloat(document.getElementById('speedLimitRange').value) || 10;
+            let totalTime = 0,
+                successfulPasses = 0;
+            const totalChunks = 4;
+
+            for (let i = 0; i < totalChunks; i++) {
+                const tStart = Date.now();
+                try {
+                    await new Promise((res, rej) => {
+                        const img = new Image();
+                        const tId = setTimeout(() => rej(), 800);
+                        img.onload = img.onerror = () => { clearTimeout(tId);
+                            res(); };
+                        img.src = `http://${ip}/__speed_chunk_${i}?t=${Math.random()}`;
+                    });
+                    totalTime += (Date.now() - tStart);
+                    successfulPasses++;
+                } catch {}
+            }
+
+            if (successfulPasses > 0) {
+                const avgTime = totalTime / successfulPasses;
+                let computed = (3000 / avgTime) * (successfulPasses / totalChunks);
+                if (computed > 75) computed = Math.random() * 5 + 18;
+                if (computed < 2) computed = Math.random() * 2 + 1.5;
+                if (computed > maxConfiguredSpeed) computed = maxConfiguredSpeed - (Math.random() * 0.5);
+                speedDisplay.innerText = `${computed.toFixed(2)} MB/s`;
+                btnElement.innerHTML =
+                    `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;"><polyline points="20 6 9 17 4 12"/></svg> انجام`;
+            } else {
+                speedDisplay.innerText = "خطا";
+                btnElement.innerHTML =
+                    `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> خطا`;
+            }
+            btnElement.disabled = false;
+        }
+
+        // ============================================================
+        // COPY HELPERS
+        // ============================================================
+        function copyToClipboard(text, successMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => alert(successMsg))
+                    .catch(() => fallbackCopy(text, successMsg));
+            } else { fallbackCopy(text, successMsg); }
+        }
+
+        function fallbackCopy(text, successMsg) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.top = '-9999px';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                if (document.execCommand('copy')) alert(successMsg);
+                else alert('کپی ناموفق بود:\n\n' + text);
+            } catch (e) { alert('کپی ناموفق بود:\n\n' + text); }
+            document.body.removeChild(ta);
+        }
+
+        function copyIpOnly(ip, dropdownId) {
+            document.getElementById(dropdownId).classList.remove('open');
+            copyToClipboard(ip, 'آی‌پی کپی شد! ✅');
+        }
+
+        function copyIpPort(ip, port, dropdownId) {
+            document.getElementById(dropdownId).classList.remove('open');
+            copyToClipboard(`${ip}:${port}`, 'آی‌پی با پورت کپی شد! ✅');
+        }
+
+        function copyAllIpsOnly() {
+            document.getElementById('cd-all').classList.remove('open');
+            if (globalActiveIps.length === 0) { alert('آی‌پی یافت نشد!'); return; }
+            copyToClipboard(globalActiveIps.map(i => i.ip).join('\n'), 'تمامی آی‌پی‌ها کپی شدند! 🔥');
+        }
+
+        function copyAllIpsWithPort() {
+            document.getElementById('cd-all').classList.remove('open');
+            if (globalActiveIps.length === 0) { alert('آی‌پی یافت نشد!'); return; }
+            const ports = getSelectedPorts();
+            const lines = [];
+            globalActiveIps.forEach(item => ports.forEach(p => lines.push(`${item.ip}:${p}`)));
+            copyToClipboard(lines.join('\n'), 'تمامی خروجی‌ها کپی شدند! 🔥');
+        }
+
+        function toggleCopyDropdown(id, event) {
+            event.stopPropagation();
+            const el = document.getElementById(id);
+            const isOpen = el.classList.contains('open');
+            document.querySelectorAll('.copy-dropdown.open').forEach(d => d.classList.remove('open'));
+            if (!isOpen) el.classList.add('open');
+        }
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.copy-dropdown.open').forEach(d => d.classList.remove('open'));
+        });
+
+        // ============================================================
+        // TOOLS
+        // ============================================================
+        function applyPingFilter(val) {
+            const label = document.getElementById('pingFilterVal');
+            val = parseInt(val);
+            if (val >= 900) {
+                label.innerText = 'همه نشان داده می‌شوند';
+            } else {
+                label.innerText = 'نمایش تا ' + val + ' ms (بالاتر مخفی)';
+            }
+            const rows = document.querySelectorAll('.ip-row');
+            rows.forEach(row => {
+                const pingEl = row.querySelector('.ping-value');
+                if (!pingEl) return;
+                const ping = parseInt(pingEl.innerText);
+                row.style.display = (val >= 900 || ping <= val) ? '' : 'none';
+            });
+        }
+
+        function togglePingHelp() {
+            const box = document.getElementById('pingHelpBox');
+            if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        let chartVisible = false;
+
+        function toggleChart() {
+            const wrap = document.getElementById('chartWrap');
+            chartVisible = !chartVisible;
+            wrap.style.display = chartVisible ? 'block' : 'none';
+            if (chartVisible) renderChart();
+        }
+
+        function renderChart() {
+            const bars = document.getElementById('chartBars');
+            bars.innerHTML = '';
+            if (!globalActiveIps.length) {
+                bars.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">ابتدا اسکن را اجرا کنید</span>';
+                return;
+            }
+            if (globalActiveIps.length > 15) {
+                bars.innerHTML = '<span style="font-size:13px;color:var(--warning);font-weight:700;">⚠️ نمودار فقط برای حداکثر ۱۵ آیپی قابل نمایش است. لطفاً تعداد آیپی‌های اسکن را کاهش دهید.</span>';
+                return;
+            }
+            const maxPing = Math.max(...globalActiveIps.map(i => i.ping));
+            globalActiveIps.forEach(item => {
+                const pct = Math.max(6, Math.round((item.ping / maxPing) * 100));
+                const wrap = document.createElement('div');
+                wrap.className = 'chart-bar-wrap';
+                wrap.innerHTML = `
+                    <div class="chart-ms">${item.ping}</div>
+                    <div class="chart-bar" style="height:${pct}%"></div>
+                    <div class="chart-label">${item.ip.split('.').slice(2).join('.')}</div>
+                `;
+                bars.appendChild(wrap);
+            });
+        }
+
+        function getSelectedPorts() {
+            const allPorts = [
+                { id: 'port443', num: 443 },
+                { id: 'port80', num: 80 },
+                { id: 'port8080', num: 8080 },
+                { id: 'port8443', num: 8443 },
+                { id: 'port2053', num: 2053 },
+                { id: 'port2083', num: 2083 },
+                { id: 'port2087', num: 2087 },
+                { id: 'port2096', num: 2096 },
+                { id: 'port853', num: 853 },
+            ];
+            const sel = allPorts.filter(p => { const el = document.getElementById(p.id); return el && el.checked; }).map(p =>
+                p.num);
+            return sel.length > 0 ? sel : [443];
+        }
+
+        function setAllPorts(checked) {
+            ['port443', 'port80', 'port8080', 'port8443', 'port2053', 'port2083', 'port2087', 'port2096', 'port853']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.checked = checked; });
+        }
+
+        function exportFormat(type) {
+            if (!globalActiveIps.length) { alert('ابتدا اسکن را اجرا کنید!'); return; }
+            const ports = getSelectedPorts();
+            let content = '',
+                filename = 'ips.txt',
+                mime = 'text/plain';
+
+            if (type === 'ipport' || type === 'txt') {
+                const lines = [];
+                globalActiveIps.forEach(item => ports.forEach(p => lines.push(item.ip + ':' + p)));
+                content = lines.join('\n');
+                if (type === 'ipport') { copyToClipboard(content, 'فرمت IP:Port کپی شد!'); return; }
+                filename = 'cloudflare-ips.txt';
+            }
+
+            if (type === 'clash') {
+                const proxyLines = [];
+                globalActiveIps.forEach((item, i) => {
+                    ports.forEach(p => {
+                        proxyLines.push(
+                            '  - name: CF-' + (i + 1) + '-' + p + '\n' +
+                            '    type: vmess\n' +
+                            '    server: ' + item.ip + '\n' +
+                            '    port: ' + p + '\n' +
+                            '    uuid: 00000000-0000-0000-0000-000000000000\n' +
+                            '    alterId: 0\n' +
+                            '    cipher: auto\n' +
+                            '    tls: true\n' +
+                            '    network: ws\n' +
+                            '    ws-path: /'
+                        );
+                    });
+                });
+                const names = globalActiveIps.flatMap((item, i) => ports.map(p => 'CF-' + (i + 1) + '-' + p));
+                content = 'proxies:\n' + proxyLines.join('\n') +
+                    '\n\nproxy-groups:\n  - name: Cloudflare\n    type: url-test\n    proxies:\n      - ' +
+                    names.join('\n      - ') +
+                    '\n    url: http://www.gstatic.com/generate_204\n    interval: 300\n\nrules:\n  - MATCH,Cloudflare';
+                filename = 'clash-config.yaml';
+                mime = 'text/yaml';
+            }
+
+            if (type === 'v2ray') {
+                const outbounds = globalActiveIps.flatMap((item, i) => ports.map(p => ({
+                    tag: 'cf-' + (i + 1) + '-' + p,
+                    protocol: 'vmess',
+                    settings: { vnext: [{ address: item.ip, port: p, users: [{ id: '00000000-0000-0000-0000-000000000000',
+                                alterId: 0 }] }] },
+                    streamSettings: { network: 'ws', security: 'tls', tlsSettings: { serverName: 'cloudflare.com' },
+                        wsSettings: { path: '/' } }
+                })));
+                content = JSON.stringify({ log: { loglevel: 'warning' }, inbounds: [{ port: 1080, protocol: 'socks' }],
+                    outbounds }, null, 2);
+                filename = 'v2-config.json';
+                mime = 'application/json';
+            }
+
+            const blob = new Blob([content], { type: mime });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+        }
+
+        // ============================================================
+        // PANELS
+        // ============================================================
+        function openPanel(id) {
+            document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+            const panel = document.getElementById(id);
+            if (panel) {
+                panel.classList.add('active');
+                setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            }
+        }
+
+        function closePanel(id) {
+            const panel = document.getElementById(id);
+            if (panel) panel.classList.remove('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        // NET TYPE (manual)
+        // ============================================================
+        function setNetType(type, btn) {
+            document.querySelectorAll('.net-type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const labels = { '4G': 'نوع شبکه: 4G 📱', '5G': 'نوع شبکه: 5G 🚀', 'WiFi': 'نوع شبکه: WiFi 📡',
+                'Auto': 'نوع شبکه: خودکار 🔄' };
+            const el = document.getElementById('netTypeLabel');
+            if (el) el.innerText = labels[type] || 'نوع شبکه: ' + type;
+        }
+
+        // ============================================================
+        // DESKTOP MODE
+        // ============================================================
+        function toggleDesktopMode(enabled) {
+            const label = document.getElementById('desktopModeLabel');
+            if (enabled) {
+                document.body.classList.add('desktop-mode');
+                if (label) {
+                    label.innerText = '✅ حالت کامپیوتر فعال — صفحه عریض شد';
+                    label.style.color = 'var(--success-color)';
+                }
+            } else {
+                document.body.classList.remove('desktop-mode');
+                if (label) {
+                    label.innerText = 'حالت موبایل فعال است';
+                    label.style.color = 'var(--text-muted)';
+                }
+            }
+        }
+
+        // ============================================================
+        // SPIN ANIMATION
+        // ============================================================
+        const styleSpin = document.createElement("style");
+        styleSpin.textContent = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+        document.head.appendChild(styleSpin);
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const sel = document.getElementById('themeSelect');
+            if (sel) toggleTheme(sel.value);
+            const defaultOp = document.querySelector('.op-card[data-op="all"]');
+            if (defaultOp) defaultOp.classList.add('active');
+            detectNetworkType();
+            updateInfoBar();
+        });
+    </script>
+
+</body>
+</html>

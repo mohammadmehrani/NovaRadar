@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "upstream": {
+    "owner": "IRNova",
+    "repo": "NovaRadar",
+    "baseBranch": "main"
+  },
+  "fork": {
+    "owner": "mohammadmehrani",
+    "repo": "NovaRadar",
+    "sourceBranch": "main",
+    "upstreamBranch": "upstream-base"
+  },
+  "filter": {
+    "includeFile": ".upstream/include.txt",
+    "excludeFile": ".upstream/exclude.txt",
+    "syncScript": "scripts/sync-upstream.ps1"
+  },
+  "pr": {
+    "title": "Nova Radar Android v{version}",
+    "autoMerge": true,
+    "mergeMethod": "squash"
+  }
+}
