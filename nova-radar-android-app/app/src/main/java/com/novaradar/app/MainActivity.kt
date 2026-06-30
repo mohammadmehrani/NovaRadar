@@ -14,11 +14,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material.icons.outlined.Settings
@@ -99,7 +101,7 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
     val lang by viewModel.selectedLanguage.collectAsState()
     val theme by viewModel.selectedTheme.collectAsState()
     val isDark = theme == AppTheme.PRISM_DARK
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
     val coroutineScope = rememberCoroutineScope()
 
     CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
@@ -114,18 +116,19 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                     modifier = Modifier
                         .fillMaxSize()
                         .testTag("main_horizontal_pager")
-                ) { page ->
+                    ) { page ->
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 14.dp)
-                            .padding(top = 8.dp)
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 6.dp)
                     ) {
                         when (page) {
                             0 -> SettingsScreen(viewModel)
                             1 -> ImportScreen(viewModel)
                             2 -> RadarScreen(viewModel)
-                            3 -> AboutScreen(viewModel)
+                            3 -> EasyInstallerScreen(viewModel)
+                            4 -> AboutScreen(viewModel)
                         }
                     }
                 }
@@ -140,12 +143,14 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
             NavigationBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(72.dp)
+                    .height(80.dp)
+                    .padding(horizontal = 4.dp)
                     .border(
                         width = 0.5.dp,
                         color = if (isDark) Color(0xFF2D3A5C).copy(alpha = 0.3f) else Color(0xFFCBD5E1).copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                    ),
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
+                    .padding(bottom = 8.dp),
                 containerColor = if (isDark) Color(0xFF0A0E1A).copy(alpha = 0.97f) else Color(0xFFF8FAFC).copy(alpha = 0.97f),
                 tonalElevation = 0.dp
             ) {
@@ -153,6 +158,7 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                     NavigationItemData(key = "tab_settings", selectedIcon = Icons.Filled.Settings, unselectedIcon = Icons.Outlined.Settings),
                     NavigationItemData(key = "tab_import", selectedIcon = Icons.Filled.Add, unselectedIcon = Icons.Outlined.Add),
                     NavigationItemData(key = "tab_radar", selectedIcon = Icons.Filled.Radar, unselectedIcon = Icons.Outlined.Radar),
+                    NavigationItemData(key = "tab_installer", selectedIcon = Icons.Filled.Download, unselectedIcon = Icons.Outlined.Download),
                     NavigationItemData(key = "tab_about", selectedIcon = Icons.Filled.Info, unselectedIcon = Icons.Outlined.Info)
                 )
 
@@ -172,7 +178,7 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                                 if (isRadar) {
                                     Box(
                                         modifier = Modifier
-                                            .size(52.dp)
+                                            .size(54.dp)
                                             .clip(CircleShape)
                                             .background(
                                                 if (isScanning)
@@ -187,19 +193,30 @@ fun MainAppLayout(viewModel: NovaRadarViewModel) {
                                             .testTag("nav_start_button"),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(Icons.Default.PowerSettingsNew, "Start/Stop", tint = Color.White, modifier = Modifier.size(26.dp))
+                                        Icon(Icons.Filled.Radar, "Start/Stop", tint = Color.White, modifier = Modifier.size(28.dp))
                                     }
                                 } else {
-                                    Icon(
-                                        imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
-                                        contentDescription = Localization.get(item.key, lang),
-                                        tint = if (isSelected) {
-                                            if (isDark) Color(0xFF4DA8FF) else Color(0xFF0D7DB3)
-                                        } else {
-                                            if (isDark) Color(0xFFE2E8F0).copy(alpha = 0.4f) else Color(0xFF94A3B8).copy(alpha = 0.5f)
-                                        },
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(
+                                                if (isSelected) (if (isDark) Color(0xFF4DA8FF).copy(alpha = 0.12f) else Color(0xFF0D7DB3).copy(alpha = 0.1f))
+                                                else Color.Transparent
+                                            )
+                                            .padding(10.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                            contentDescription = Localization.get(item.key, lang),
+                                            tint = if (isSelected) {
+                                                if (isDark) Color(0xFF60B5FF) else Color(0xFF0D7DB3)
+                                            } else {
+                                                if (isDark) Color(0xFFFFFFFF).copy(alpha = 0.55f) else Color(0xFF1E293B).copy(alpha = 0.45f)
+                                            },
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
                                 }
                             }
                         },

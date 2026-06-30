@@ -29,7 +29,8 @@ private val wizardPages = listOf(
     WizardPage("NOVA RADAR", "IP Scanner & Proxy Config Builder", "Scan Cloudflare, Akamai & Vercel IPs to find the fastest routes for your proxy.", Color(0xFF0D7DB3)),
     WizardPage("SCAN ENGINE", "Two-Phase Probe Technology", "Quick TCP scan + Deep verification with TLS handshake. Find alive IPs in seconds.", Color(0xFF10B981)),
     WizardPage("CONFIG BUILDER", "VLESS / VMess / Clash / SingBox", "Build proxy configs directly from scan results. Copy or export with Nova suffix.", Color(0xFF8B5CF6)),
-    WizardPage("READY", "Start Scanning Now", "Configure ports and IP sources in Settings, then hit the red start button.", Color(0xFF0D7DB3))
+    WizardPage("WORKER SETUP", "Deploy Your Own Worker", "Use Cloudflare Workers for custom SNI routing. Set your Worker URL in the Config Builder.", Color(0xFFF59E0B)),
+    WizardPage("READY", "Start Scanning Now", "Configure ports and IP sources in Settings, then hit the start button to begin.", Color(0xFF0D7DB3))
 )
 
 private data class WizardPage(val title: String, val subtitle: String, val desc: String, val accent: Color)

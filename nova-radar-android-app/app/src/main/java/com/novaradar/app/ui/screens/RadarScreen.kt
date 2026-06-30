@@ -378,6 +378,7 @@ private fun ScannerTab(
 }
 
 private val radarGreen = Color(0xFF00FF66)
+private val radarGreenBright = Color(0xFF33FF88)
 private val radarDim = Color(0xFF003322)
 
 @Composable
@@ -391,39 +392,40 @@ private fun RadarCanvas(
         val c = Offset(size.width / 2f, size.height / 2f)
         val outer = r * 0.85f
 
-        val alphaScale = if (isScanning) 1f else 0.10f
+        val alphaScale = if (isScanning) 1f else 0.12f
 
-        // Range rings
+        // Range rings — thicker and brighter
         for (i in 1..4) {
             val radius = outer * (i / 4f)
-            val ringAlpha = 0.12f + (i / 4f) * 0.12f
-            drawCircle(color = radarGreen.copy(alpha = ringAlpha * alphaScale), radius = radius, style = Stroke(1.dp.toPx()))
+            val ringAlpha = 0.25f + (i / 4f) * 0.15f
+            drawCircle(color = radarGreen.copy(alpha = ringAlpha * alphaScale), radius = radius, style = Stroke(1.5.dp.toPx()))
         }
 
-        // Crosshairs
-        drawLine(color = radarGreen.copy(alpha = 0.08f * alphaScale), start = Offset(c.x - outer, c.y), end = Offset(c.x + outer, c.y), strokeWidth = 0.5.dp.toPx())
-        drawLine(color = radarGreen.copy(alpha = 0.08f * alphaScale), start = Offset(c.x, c.y - outer), end = Offset(c.x, c.y + outer), strokeWidth = 0.5.dp.toPx())
+        // Crosshairs — bolder
+        val chAlpha = 0.15f * alphaScale
+        drawLine(color = radarGreen.copy(alpha = chAlpha), start = Offset(c.x - outer, c.y), end = Offset(c.x + outer, c.y), strokeWidth = 1.dp.toPx())
+        drawLine(color = radarGreen.copy(alpha = chAlpha), start = Offset(c.x, c.y - outer), end = Offset(c.x, c.y + outer), strokeWidth = 1.dp.toPx())
         val diag = outer * 0.707f
-        drawLine(radarGreen.copy(alpha = 0.05f * alphaScale), Offset(c.x - diag, c.y - diag), Offset(c.x + diag, c.y + diag), 0.5.dp.toPx())
-        drawLine(radarGreen.copy(alpha = 0.05f * alphaScale), Offset(c.x + diag, c.y - diag), Offset(c.x - diag, c.y + diag), 0.5.dp.toPx())
+        drawLine(radarGreen.copy(alpha = 0.10f * alphaScale), Offset(c.x - diag, c.y - diag), Offset(c.x + diag, c.y + diag), 0.8.dp.toPx())
+        drawLine(radarGreen.copy(alpha = 0.10f * alphaScale), Offset(c.x + diag, c.y - diag), Offset(c.x - diag, c.y + diag), 0.8.dp.toPx())
 
         // Realistic radar sweep: trailing glow behind sweep line (no rotating full circle)
         val sweepRad = Math.toRadians(animatedAngle.toDouble())
         val sweepEndX = c.x + outer * cos(sweepRad).toFloat()
         val sweepEndY = c.y + outer * sin(sweepRad).toFloat()
 
-        // Draw fading trail behind the sweep line (narrow radar beam)
+        // Draw fading trail behind the sweep line
         for (i in 1..6) {
-            val trailAngle = animatedAngle - i * 1.8f
+            val trailAngle = animatedAngle - i * 2f
             val tRad = Math.toRadians(trailAngle.toDouble())
             val tx = c.x + outer * cos(tRad).toFloat()
             val ty = c.y + outer * sin(tRad).toFloat()
-            val trailAlpha = (0.25f * (1f - i / 6f)).coerceIn(0f, 1f)
-            drawLine(color = radarGreen.copy(alpha = trailAlpha * alphaScale), start = c, end = Offset(tx, ty), strokeWidth = (1.5f - i * 0.18f).dp.toPx())
+            val trailAlpha = (0.35f * (1f - i / 6f)).coerceIn(0f, 1f)
+            drawLine(color = radarGreen.copy(alpha = trailAlpha * alphaScale), start = c, end = Offset(tx, ty), strokeWidth = (2f - i * 0.22f).dp.toPx())
         }
 
-        // Main sweep line (bright)
-        drawLine(color = radarGreen.copy(alpha = 0.85f * alphaScale), start = c, end = Offset(sweepEndX, sweepEndY), strokeWidth = 1.8.dp.toPx())
+        // Main sweep line — bright and thick
+        drawLine(color = radarGreenBright.copy(alpha = 0.95f * alphaScale), start = c, end = Offset(sweepEndX, sweepEndY), strokeWidth = 2.5.dp.toPx())
 
         // Center dot
         drawCircle(color = radarGreen.copy(alpha = 0.9f * alphaScale), radius = 3.dp.toPx())
